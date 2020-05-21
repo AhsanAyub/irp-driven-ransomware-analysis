@@ -10,11 +10,10 @@ __status__ = "Prototype"
 # Import libraries
 import os
 import glob
-import math
 import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+
 from time_series_analysis.attribute_container import (IRP_Operations_Container, Flags_Container, File_System_Container)
+import time_series_analysis.time_series_visualization as visualiser
 
 
 def build_attribute_containers(dataset_names):
@@ -133,181 +132,81 @@ def build_attribute_containers(dataset_names):
     return containers
 
 
-def self_irp_operations_analysis(container, family_name):
-    ''' visualize the types of the IRP operations count for a single ransomware family '''
-    
-    time_intervals = []
-    ransomware_irp_operations = []
-    ransomware_fsf_operations = []
-    ransomware_fio_operations = []
-    
-    for time_interval in containers:
-        time_intervals.append(int(time_interval) * 5)
-        for objects in containers[time_interval]['ransomware']:
-            if isinstance(objects, IRP_Operations_Container):
-                ransomware_irp_operations.append(math.log(objects.get_operation_irp())) if objects.get_operation_irp() > 0 else ransomware_irp_operations.append(0)
-                ransomware_fsf_operations.append(math.log(objects.get_operation_fsf())) if objects.get_operation_fsf() > 0 else ransomware_fsf_operations.append(0)
-                ransomware_fio_operations.append(math.log(objects.get_operation_fio())) if objects.get_operation_fio() > 0 else ransomware_fio_operations.append(0)
-                
-    # --- Time Series Plot of Types of IRP Operations --- 
-    
-    myFig = plt.figure(figsize=[12,10])
-    plt.plot(ransomware_irp_operations, linestyle = 'dashdot', marker = 'o', lw = 2, alpha=0.8, color = 'black')
-    plt.plot(ransomware_fsf_operations, linestyle = 'dashed', marker = 'o', lw = 2, alpha=0.8, color = 'black')
-    plt.plot(ransomware_fio_operations, linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
-    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
-    plt.title('Time Series Plot of Types of IRP Operations (' + str(family_name) + ')', fontsize=20, weight='bold')
-    plt.ylabel('Logarithm Values', fontsize=18, weight='bold')
-    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
-    plt.legend(['IRP', 'FSF', 'FIO'] , loc='best', fontsize=14)
-    plt.yticks(fontsize=16)
-    plt.show()
-        
-    # Saving the figure
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Types_of_IRP_Operations.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Types_of_IRP_Operations.png', format='png', dpi=600)
+def build_process_wise_file_system_container(dataset_names):
+    ''' Given the list of time chunk dataset names, this method will
+    utilize attribute_container python file's File_System_Container class
+    to compile a master container of such attributes for both benign processes
+    (having the highest count given a time frame) and ransomware process.'''
 
-
-def self_irp_flags_analysis(container, family_name):
-    ''' visualize the types of the IRP flags counts for a single ransomware family '''
+    # Dictionary to store the class objects for different time chunks
+    file_system_container = {}
     
-    time_intervals = []
-    ransomware_irp_flags = {}
-    
-    for time_interval in containers:
-        time_intervals.append(int(time_interval) * 5)
-        for objects in containers[time_interval]['ransomware']:
-            if isinstance(objects, Flags_Container):
-                ransomware_irp_flags[int(time_interval)] = objects.get_irp_flags()
-                
-    ransomware_irp_flags = pd.DataFrame(ransomware_irp_flags).T
-    
-    myFig = plt.figure(figsize=[12,10])
-    plt.plot(np.log(ransomware_irp_flags.irp_nocache), linestyle = 'solid', marker = 'v', lw = 2, alpha=0.8, color = 'black')
-    plt.plot(np.log(ransomware_irp_flags.irp_paging_io), linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
-    plt.plot(np.log(ransomware_irp_flags.irp_synchoronous_api), linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
-    plt.plot(np.log(ransomware_irp_flags.irp_synchoronous_paging_io), linestyle = 'dashdot', marker = '^', lw = 2, alpha=0.8, color = 'black')
-    plt.xticks(range(len([i * 5 for i in range(len(ransomware_irp_flags.irp_synchoronous_paging_io)+1)])),
-               [i * 5 for i in range(len(ransomware_irp_flags.irp_synchoronous_paging_io)+1)], fontsize=16) # A hack for God knows what problem
-    plt.title('Time Series Plot of IRP Flags (' + str(family_name) + ')', fontsize=20, weight='bold')
-    plt.ylabel('Logarithm Values', fontsize=18, weight='bold')
-    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
-    plt.legend(['NoCache', 'Paging IO', 'Synchoronous API', 'Synchoronous Paging IO'] , loc='best', fontsize=14)
-    plt.yticks(fontsize=16)
-    plt.show()
+    # Iterate through different dataset files
+    for i in range(1,len(dataset_names)+1):
+        ''' As the dataset names are not sorted properly, this hack will
+        ensure the datasets are accessed serially '''
         
-    # Saving the figure
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_IRP_Flags.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_IRP_Flags.png', format='png', dpi=600)
+        for dataset_name in dataset_names:
+            if(str(i) == str(dataset_name.split('_')[-1].split('.')[0])):
+                ''' This is where the main operation will begin chronologically '''
+                
+                dataset = pd.read_pickle(dataset_name, compression='gzip')
+                print(dataset.head())
     
-    
-def self_file_system_analysis(container, family_name):
-    ''' visualize the features of the file system category '''
-    
-    time_intervals = []
-    ransomware_file_objects = []
-    benign_file_objects = []
-    ransomware_file_accessed = []
-    benign_file_accessed = []
-    ransomware_buffer_lengths = {}
-    ransomware_entropy = {}
-    benign_entropy = {}
-    
-    for time_interval in containers:
-        time_intervals.append(int(time_interval) * 5)
-        for objects in containers[time_interval]['ransomware']:
-            if isinstance(objects, File_System_Container):
-                ransomware_file_objects.append(objects.get_file_object())
-                ransomware_file_accessed.append(objects.get_file_accessed())
-                ransomware_buffer_lengths[int(time_interval)] = objects.get_buffer_length()
-                ransomware_entropy[int(time_interval)] = objects.get_entropy()
+                ''' Selection only features that are needed to analyze file system analysis '''
+                dataset = dataset[['process_id', 'process_name', 'file_object','file_name','buffer_length','entropy','class']]
+                
+                # Group by process id and process name to fetch the benign process representative
+                groupedData = dataset.groupby(['process_id', 'process_name'])
+                
+                # Only selecting onc process that has got hightest sum of buffer length
+                benign_process_id = -1
+                benign_process_name = ''
+                temp_max_buffer_length = 0
+                
+                benign_file_system_container = File_System_Container()
+                ransomware_file_system_container = File_System_Container()
+                
+                # As ransomware may incorporate multiple processes, we will consider its every record
+                ransomware_instances = dataset.drop(dataset[(dataset['class'] != 1)].index)
+                ransomware_file_system_container.set_file_object(ransomware_instances['file_object'].unique().size)
+                ransomware_file_system_container.set_file_accessed(ransomware_instances['file_name'].unique().size)
+                ransomware_file_system_container.set_buffer_length(ransomware_instances['buffer_length'])
+                ransomware_file_system_container.set_entropy(ransomware_instances['entropy'])
+                
+                # Find out the benign process representative
+                for items in groupedData:
+                    if items[1]['class'].sum() > 0:
+                        pass    # Ransomware process
+                    else:   # Benign process
+                        if(items[1]['buffer_length'].max() > temp_max_buffer_length):
+                            temp_max_buffer_length = items[1]['buffer_length'].max()
+                            benign_process_id = items[0][0]
+                            benign_process_name = items[0][1]
+                        else:
+                            pass
+                
+                # Got the desired benign process representative
+                for items in groupedData:
+                    if (items[0][0] == benign_process_id) and (items[0][1] == benign_process_name):
+                        # Benign process
+                        benign_file_system_container.set_file_object(items[1]['file_object'].unique().size)
+                        benign_file_system_container.set_file_accessed(items[1]['file_name'].unique().size)
+                        benign_file_system_container.set_buffer_length(items[1]['buffer_length'])
+                        benign_file_system_container.set_entropy(items[1]['entropy'])
+                        
+                    else:
+                        pass
+                    
+                file_system_container[i] = { "benign" : benign_file_system_container,
+                                             "ransomware" : ransomware_file_system_container}
                 
             else:
                 pass
-            
-        for objects in containers[time_interval]['benign']:
-            if isinstance(objects, File_System_Container):
-                benign_file_objects.append(objects.get_file_object())
-                benign_file_accessed.append(objects.get_file_accessed())
-                benign_entropy[int(time_interval)] = objects.get_entropy()
-                
-            else:
-                pass
-                
-    ransomware_buffer_lengths = pd.DataFrame(ransomware_buffer_lengths).T
-    ransomware_entropy = pd.DataFrame(ransomware_entropy).T
-    benign_entropy = pd.DataFrame(benign_entropy).T
     
-    # --- Time Series Plot of both type of file objects --- 
+    # Return the container having all the objects        
+    return file_system_container
     
-    myFig = plt.figure(figsize=[12,10])
-    plt.plot(np.log(ransomware_file_objects), linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
-    plt.plot(np.log(benign_file_objects), linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
-    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
-    plt.title('Time Series Plot of File Objects (' + str(family_name) + ')', fontsize=20, weight='bold')
-    plt.ylabel('Logarithm Values', fontsize=18, weight='bold')
-    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
-    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
-    plt.yticks(fontsize=16)
-    plt.show()
-        
-    # Saving the figure
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Objects.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Objects.png', format='png', dpi=600)
-    
-    # --- Time Series Plot of both type of file accessed --- 
-    
-    myFig = plt.figure(figsize=[12,10])
-    plt.plot(np.log(ransomware_file_accessed), linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
-    plt.plot(np.log(benign_file_accessed), linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
-    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
-    plt.title('Time Series Plot of Unique File Accessed (' + str(family_name) + ')', fontsize=20, weight='bold')
-    plt.ylabel('Logarithm Values', fontsize=18, weight='bold')
-    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
-    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
-    plt.yticks(fontsize=16)
-    plt.show()
-        
-    # Saving the figure
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Accessed.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Accessed.png', format='png', dpi=600)
-    
-    # --- Time Series Plot of ransomware buffer length --- 
-    
-    myFig = plt.figure(figsize=[12,10])
-    plt.plot(np.log(ransomware_buffer_lengths.max_buffer_length), linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
-    plt.plot(np.log(ransomware_buffer_lengths.mean_buffer_length), linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
-    plt.xticks(range(len([i * 5 for i in range(len(ransomware_buffer_lengths.mean_buffer_length)+1)])),
-               [i * 5 for i in range(len(ransomware_buffer_lengths.mean_buffer_length)+1)], fontsize=16) # A hack for God knows what problem
-    plt.title('Time Series Plot of Buffer Length (' + str(family_name) + ')', fontsize=20, weight='bold')
-    plt.ylabel('Logarithm Values', fontsize=18, weight='bold')
-    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
-    plt.legend(['Max', 'Mean'] , loc='best', fontsize=14)
-    plt.yticks(fontsize=16)
-    plt.show()
-        
-    # Saving the figure
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Buffer_Length.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Buffer_Length.png', format='png', dpi=600)
-    
-    # --- Time Series Plot of ransomware entropy --- 
-    
-    myFig = plt.figure(figsize=[12,10])
-    plt.plot(np.log(ransomware_entropy.mean_entropy * 100), linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
-    plt.plot(np.log(benign_entropy.mean_entropy * 100), linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
-    plt.xticks(range(len([i * 5 for i in range(len(ransomware_entropy.mean_entropy )+1)])),
-               [i * 5 for i in range(len(ransomware_entropy.mean_entropy )+1)], fontsize=16) # A hack for God knows what problem
-    plt.title('Time Series Plot of Entropy (' + str(family_name) + ')', fontsize=20, weight='bold')
-    plt.ylabel('Logarithm Values', fontsize=18, weight='bold')
-    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
-    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
-    plt.yticks(fontsize=16)
-    plt.show()
-        
-    # Saving the figure
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Entropy.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Entropy.png', format='png', dpi=600)
-
 
 if __name__ == '__main__':
     
@@ -316,6 +215,9 @@ if __name__ == '__main__':
     # Get the feature containers of all the 5 mins time chunk datasets
     containers = build_attribute_containers([i for i in glob.glob(str(cwd) + '/Dataset/' + '*.gz')])
 
-    self_irp_operations_analysis(containers, "CryptoDefense")
-    self_irp_flags_analysis(containers, "CryptoDefense")
-    self_file_system_analysis(containers, "CryptoDefense")
+    visualiser.self_irp_operations_analysis(containers, "TeslaCrypt")
+    visualiser.self_irp_flags_analysis(containers, "TeslaCrypt")
+    visualiser.self_file_system_analysis(containers, "TeslaCrypt")
+    
+    file_system_container = build_process_wise_file_system_container([i for i in glob.glob(str(cwd) + '/Dataset/' + '*.gz')])
+    visualiser.comparitive_file_system_analysis_individual_family(file_system_container, "TeslaCrypt")
