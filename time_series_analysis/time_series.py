@@ -11,6 +11,8 @@ __status__ = "Prototype"
 import os
 import glob
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 from time_series_analysis.attribute_container import (IRP_Operations_Container, Flags_Container, File_System_Container)
 import time_series_analysis.time_series_visualization as visualiser
@@ -212,12 +214,107 @@ if __name__ == '__main__':
     
     cwd = os.getcwd()   # Current project working direction
     
-    # Get the feature containers of all the 5 mins time chunk datasets
-    containers = build_attribute_containers([i for i in glob.glob(str(cwd) + '/Dataset/' + '*.gz')])
+    '''# Get the feature containers of all the 5 mins time chunk datasets
+    containers = build_attribute_containers([i for i in glob.glob(str(cwd) + '/Dataset/TeslaCrypt/' + '*.gz')])
 
     visualiser.self_irp_operations_analysis(containers, "TeslaCrypt")
     visualiser.self_irp_flags_analysis(containers, "TeslaCrypt")
     visualiser.self_file_system_analysis(containers, "TeslaCrypt")
     
-    file_system_container = build_process_wise_file_system_container([i for i in glob.glob(str(cwd) + '/Dataset/' + '*.gz')])
-    visualiser.comparitive_file_system_analysis_individual_family(file_system_container, "TeslaCrypt")
+    file_system_container = build_process_wise_file_system_container([i for i in glob.glob(str(cwd) + '/Dataset/TeslaCrypt/' + '*.gz')])
+    visualiser.comparitive_file_system_analysis_individual_family(file_system_container, "TeslaCrypt")'''
+    
+    ransomware_family_name_paths = [x[0] for x in os.walk(str(cwd) + '/Dataset')]
+    ransomware_family_name_paths = sorted(ransomware_family_name_paths)
+    ransomware_family_name_paths.pop(0)    # Remove the dataset root folder
+    master_container = {}
+    
+    for ransomware_family_name_path in ransomware_family_name_paths:
+        master_container[str(ransomware_family_name_path).split('/')[-1]] = build_attribute_containers([i for i in glob.glob(str(ransomware_family_name_path) + '/*.gz')])
+        
+    # ---- Box plots for file system container ----
+    file_object = {}
+    unique_file_accessed = {}
+    entropy = {}
+    buffer_length = {}
+    ransomware_family_names = []
+    
+    for ransomware_family in master_container:
+        ''' Temporary lists to populate the values for box plot '''
+        temp_file_object = []
+        temp_unique_file_accessed = []
+        temp_entropy = []
+        temp_buffer_length = []
+        
+        for key in master_container[ransomware_family]:
+            for objects in master_container[ransomware_family][key]['ransomware']:
+                if isinstance(objects, File_System_Container):
+                    temp_file_object.append(objects.get_file_object())
+                    temp_unique_file_accessed.append(objects.get_file_accessed())
+                    temp_buffer_length.append(objects.get_buffer_length()['mean_buffer_length'])
+                    temp_entropy.append(objects.get_entropy()['mean_entropy'])
+                    
+                else:
+                    pass
+        
+        file_object[str(ransomware_family)] = temp_file_object
+        unique_file_accessed[str(ransomware_family)] = temp_unique_file_accessed
+        entropy[str(ransomware_family)] = temp_entropy
+        buffer_length[str(ransomware_family)] = temp_buffer_length
+        ransomware_family_names.append(str(ransomware_family))
+        
+    del temp_file_object, temp_unique_file_accessed, temp_entropy, temp_buffer_length
+    
+    
+    # --- Print file object box plot ---
+    data = []    
+    for i in range(18):
+        temp = []
+        for ransomware_family_name in ransomware_family_names:
+            try:
+                temp.append(file_object[ransomware_family_name][i])
+            except:
+                #temp.append(0)
+                continue
+        data.append(temp)
+    del temp
+    visualiser.generate_simple_box_plot(data, "File Object Feature Distribution among Ransomware Families", "Unique Counts")
+    
+    # --- Print file accessed box plot ---
+    data = []    
+    for i in range(18):
+        temp = []
+        for ransomware_family_name in ransomware_family_names:
+            try:
+                temp.append(unique_file_accessed[ransomware_family_name][i])
+            except:
+                continue
+        data.append(temp)
+    del temp
+    visualiser.generate_simple_box_plot(data, "Number of Files Accessed by Ransomware Families", "Unique Counts")
+    
+    # --- Print entropy box plot ---
+    data = []    
+    for i in range(18):
+        temp = []
+        for ransomware_family_name in ransomware_family_names:
+            try:
+                temp.append(entropy[ransomware_family_name][i] * 100)
+            except:
+                continue
+        data.append(np.log(temp))
+    del temp
+    visualiser.generate_simple_box_plot(data, "Entropy Feature Distribution among Ransomware Families", "Logarithm Values of Mean")
+    
+    # --- Print buffer length box plot ---
+    data = []    
+    for i in range(18):
+        temp = []
+        for ransomware_family_name in ransomware_family_names:
+            try:
+                temp.append(buffer_length[ransomware_family_name][i])
+            except:
+                continue
+        data.append(np.log(temp))
+    del temp
+    visualiser.generate_simple_box_plot(data, "Buffer Length Feature Distribution among Ransomware Families", "Logarithm Values of Mean")

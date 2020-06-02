@@ -48,7 +48,7 @@ def self_irp_operations_analysis(container, family_name):
         
     # Saving the figure
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Types_of_IRP_Operations.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Types_of_IRP_Operations.png', format='png', dpi=600)
+    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Types_of_IRP_Operations.png', format='png', dpi=300)
 
 
 def self_irp_flags_analysis(container, family_name):
@@ -82,7 +82,7 @@ def self_irp_flags_analysis(container, family_name):
         
     # Saving the figure
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_IRP_Flags.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_IRP_Flags.png', format='png', dpi=600)
+    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_IRP_Flags.png', format='png', dpi=300)
     
     
 def self_file_system_analysis(container, family_name):
@@ -138,7 +138,7 @@ def self_file_system_analysis(container, family_name):
         
     # Saving the figure
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Objects.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Objects.png', format='png', dpi=600)
+    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Objects.png', format='png', dpi=300)
     
     # --- Time Series Plot of both type of file accessed --- 
     
@@ -156,7 +156,7 @@ def self_file_system_analysis(container, family_name):
         
     # Saving the figure
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Accessed.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Accessed.png', format='png', dpi=600)
+    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Accessed.png', format='png', dpi=300)
     
     # --- Time Series Plot of ransomware buffer length --- 
     
@@ -175,7 +175,7 @@ def self_file_system_analysis(container, family_name):
         
     # Saving the figure
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Buffer_Length.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Buffer_Length.png', format='png', dpi=600)
+    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Buffer_Length.png', format='png', dpi=300)
     
     # --- Time Series Plot of ransomware entropy --- 
     
@@ -194,7 +194,7 @@ def self_file_system_analysis(container, family_name):
         
     # Saving the figure
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Entropy.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Entropy.png', format='png', dpi=600)
+    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Entropy.png', format='png', dpi=300)
     
 
 def comparitive_file_system_analysis_individual_family(container, family_name):
@@ -248,7 +248,7 @@ def comparitive_file_system_analysis_individual_family(container, family_name):
         
     # Saving the figure
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Objects_comparitive_individual_family.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Objects_comparitive_individual_family.png', format='png', dpi=600)
+    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Objects_comparitive_individual_family.png', format='png', dpi=300)
     
     # --- Time Series Plot of both type of file accessed --- 
     
@@ -266,7 +266,7 @@ def comparitive_file_system_analysis_individual_family(container, family_name):
         
     # Saving the figure
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Accessed_comparitive_individual_family.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Accessed_comparitive_individual_family.png', format='png', dpi=600)
+    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_File_Accessed_comparitive_individual_family.png', format='png', dpi=300)
     
     # --- Time Series Plot of ransomware buffer length --- 
     
@@ -285,7 +285,7 @@ def comparitive_file_system_analysis_individual_family(container, family_name):
         
     # Saving the figure
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Buffer_Length_comparitive_individual_family.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Buffer_Length_comparitive_individual_family.png', format='png', dpi=600)
+    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Buffer_Length_comparitive_individual_family.png', format='png', dpi=300)
     
     # --- Time Series Plot of ransomware entropy --- 
     
@@ -304,4 +304,29 @@ def comparitive_file_system_analysis_individual_family(container, family_name):
         
     # Saving the figure
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Entropy_comparitive_individual_family.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Entropy_comparitive_individual_family.png', format='png', dpi=600)
+    myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Entropy_comparitive_individual_family.png', format='png', dpi=300)
+
+    
+def generate_simple_box_plot(data, title, ylabel):
+    ''' Generate a simple boxplot using mathplotlib
+    where the data is a nested list '''
+    
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.boxplot(data, vert=True, widths=0.8, patch_artist=True,
+            boxprops=dict(facecolor='black', color='black'),
+            capprops=dict(color='black'),
+            whiskerprops=dict(color='black'),
+            flierprops=dict(color='black', markeredgecolor='black'),
+            medianprops=dict(color='white')
+            )
+    plt.xticks(range(1,19), [i * 5 for i in range(1,19)], fontsize=16)
+    plt.title(str(title), fontsize=20, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.ylabel(str(ylabel), fontsize=18, weight='bold')
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig(str(title).replace(' ', '_')  + '.eps', format='eps', dpi=1200)
+    myFig.savefig(str(title).replace(' ', '_') + '.png', format='png', dpi=300)
