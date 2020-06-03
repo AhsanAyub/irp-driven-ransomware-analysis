@@ -309,7 +309,7 @@ def comparitive_file_system_analysis_individual_family(container, family_name):
     
 def generate_simple_box_plot(data, title, ylabel):
     ''' Generate a simple boxplot using mathplotlib
-    where the data is a nested list '''
+    where the data is a nested list. '''
     
     plt.clf() # Clear figure
     myFig = plt.figure(figsize=[12,10])
@@ -328,5 +328,24 @@ def generate_simple_box_plot(data, title, ylabel):
     plt.show()
     
     # Saving the figure
-    myFig.savefig(str(title).replace(' ', '_')  + '.eps', format='eps', dpi=1200)
-    myFig.savefig(str(title).replace(' ', '_') + '.png', format='png', dpi=300)
+    myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_')  + '.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_') + '.png', format='png', dpi=300)
+    
+    
+def generate_simple_line_graph(X, Y, title, x_label, y_label):
+    ''' Generate a simple line graph using mathplotlib
+    where the data is given through X and Y along with lalbes and a title. '''
+    
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(Y, linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(X)), X, fontsize=16)
+    plt.title(str(title), fontsize=20, weight='bold')
+    plt.ylabel(str(y_label), fontsize=18, weight='bold')
+    plt.xlabel(str(x_label), fontsize=18, weight='bold')
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_')  + '.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_') + '.png', format='png', dpi=300)
