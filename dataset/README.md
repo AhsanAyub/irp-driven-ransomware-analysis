@@ -1,12 +1,12 @@
 ### Dataset Information
 
-The Git repository does not contain the dataset; however, the local machine's git version does in this folder. The Dataset folder has `18` subfolders, each belongs to a ransomware family. Additionally, every ransomware family has one randomly selected sample's IRP logs dataset. The datasets are partioned in `5` minutes timeframe and saved in `pkl.gz` format. There are up to `18` such files in each subfolder.
+The online Git repository does not contain the dataset; however, the local machine's git version does in this folder. The Dataset folder has `18` subfolders, each belongs to a ransomware family. Additionally, every ransomware family has one randomly selected sample's IRP logs dataset. The datasets are partioned in `5` minutes timeframe and saved in `pkl.gz` format. There are up to `18` such files in each subfolder.
 
-Datasets can be shared upin request. The following is the description of the datasets of every ransowmare family we have worked on -
+Datasets can be shared upon request. The following is the description of the datasets of every ransowmare family we have worked on -
 
 
-Family Name: `Critoni`
-Sample Name: `0f718f875bda8343658f8e7ae0054d9c84ed2de1cfa2e8a7ece80016de99a712`
+* Family Name: `Critoni`
+* Sample Name: `0f718f875bda8343658f8e7ae0054d9c84ed2de1cfa2e8a7ece80016de99a712`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -30,8 +30,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	5871.332	6178.497	(6589, 34)
 ```
 
-Family Name: `Crowti`
-Sample Name: `403ceb27abd196bf21e96ef71668c8f53b5d6c806ca96cb2015b2b8703b6fddc`
+* Family Name: `Crowti`
+* Sample Name: `403ceb27abd196bf21e96ef71668c8f53b5d6c806ca96cb2015b2b8703b6fddc`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -55,8 +55,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	34751.232	35058.96	(293103, 34)
 ```
 
-Family Name: `CryptoDefense`
-Sample Name: `52674292463331282cfe011686bbece969ed0ecefc65df667bda99f483e3b6c8`
+* Family Name: `CryptoDefense`
+* Sample Name: `52674292463331282cfe011686bbece969ed0ecefc65df667bda99f483e3b6c8`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -74,8 +74,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 12	74799.561	75107.626	(67181, 34)
 ```
 
-Family Name: `CryptoWall`
-Sample Name: `c5ccf02d58ac8fe0fb708dda488dcf1539deb5c811e05009759339cf120498c1`
+* Family Name: `CryptoWall`
+* Sample Name: `c5ccf02d58ac8fe0fb708dda488dcf1539deb5c811e05009759339cf120498c1`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -93,8 +93,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 12	58222.817	58528.144	(216320, 34)
 ```
 
-Family Name: `Dalexis`
-Sample Name: `2d5b86f2b639557c6f12a479f314e6a1eef3a4326a093237e97fe9f7cf03ea77`
+* Family Name: `Dalexis`
+* Sample Name: `2d5b86f2b639557c6f12a479f314e6a1eef3a4326a093237e97fe9f7cf03ea77`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -118,8 +118,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	35535.191	35851.444	(404677, 34)
 ```
 
-Family Name: `Deshacop`
-Sample Name: `070206805b90545e9a874f4ea17d76505d073585b6362d55ef729fe6d6ca1970`
+* Family Name: `Deshacop`
+* Sample Name: `070206805b90545e9a874f4ea17d76505d073585b6362d55ef729fe6d6ca1970`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -143,8 +143,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	33665.668	33989.91	(585248, 34)
 ```
 
-Family Name: `High`
-Sample Name: `2b1d2d3bcbeedb93279480e469f77c032ee42ae4e6dc79fe0d8bdef063f1196a`
+* Family Name: `High`
+* Sample Name: `2b1d2d3bcbeedb93279480e469f77c032ee42ae4e6dc79fe0d8bdef063f1196a`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -168,8 +168,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	33373.52	33690.179	(91741, 34)
 ```
 
-Family Name: `Parite`
-Sample Name: `e70a90b0346148ebb0564b6bd6cee7f959c53b506da83a7b93530c1c7e6767fa`
+* Family Name: `Parite`
+* Sample Name: `e70a90b0346148ebb0564b6bd6cee7f959c53b506da83a7b93530c1c7e6767fa`
 
 ```
 Sl.	Pre-Opn	Time		Post-Opn Time		Shape
@@ -193,8 +193,8 @@ Sl.	Pre-Opn	Time		Post-Opn Time		Shape
 18	56991.649000000005	57316.33700000001	(235315, 34)
 ```
 
-Family Name: `Processhijack`
-Sample Name: `c3e7f89302bb073669772337f81547ee06fa877e0cd21f979fc5eb172a4ced4d`
+* Family Name: `Processhijack`
+* Sample Name: `c3e7f89302bb073669772337f81547ee06fa877e0cd21f979fc5eb172a4ced4d`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -218,8 +218,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	34416.055	34729.662	(2877, 34)
 ```
 
-Family Name: `Pwszbot`
-Sample Name: `0c72ae88044c9a416f3fbf44ce20f0f4b20a41dc8ed1856f6c799868976d6ade`
+* Family Name: `Pwszbot`
+* Sample Name: `0c72ae88044c9a416f3fbf44ce20f0f4b20a41dc8ed1856f6c799868976d6ade`
 
 ```
 Sl.	Pre-Opn	Time		Post-Opn Time		Shape
@@ -237,8 +237,8 @@ Sl.	Pre-Opn	Time		Post-Opn Time		Shape
 12	58261.28400000001	58576.617000000006	(755031, 34)
 ```
 
-Family Name: `Seven`
-Sample Name: `295d11adfaf8b1a8e45ea842ba9defbbadfb19a4d89ece9815bad7332e1aaff0`
+* Family Name: `Seven`
+* Sample Name: `295d11adfaf8b1a8e45ea842ba9defbbadfb19a4d89ece9815bad7332e1aaff0`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -262,8 +262,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	34346.465	34661.514	(285824, 34)
 ```
 
-Family Name: `TeslaCrypt`
-Sample Name: `2a849026775792e7c66f5e6350db3ecedfa91c0e611a2b0b632fba554ea01097`
+* Family Name: `TeslaCrypt`
+* Sample Name: `2a849026775792e7c66f5e6350db3ecedfa91c0e611a2b0b632fba554ea01097`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -287,8 +287,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	34293.236	34610.558	(39206, 34)
 ```
 
-Family Name: `Tinba`
-Sample Name: `f47c2b54afeb885abe02644957cd918b541adcb582c01357c8e27d823d0dfaa6`
+* Family Name: `Tinba`
+* Sample Name: `f47c2b54afeb885abe02644957cd918b541adcb582c01357c8e27d823d0dfaa6`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -312,8 +312,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	34365.522	34676.847	(226914, 34)
 ```
 
-Family Name: `Tpyn`
-Sample Name: `ccb1119dd177fb053a1728a99412b9bf35994bc0b27b3104c77be9ed4aaec549`
+* Family Name: `Tpyn`
+* Sample Name: `ccb1119dd177fb053a1728a99412b9bf35994bc0b27b3104c77be9ed4aaec549`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -337,8 +337,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	34621.037	34926.574	(68873, 34)
 ```
 
-Family Name: `Upatre`
-Sample Name: `145ad035b35d46ed9a69cfc144d1b55a1769853e4616c308e11a188ff64eb768`
+* Family Name: `Upatre`
+* Sample Name: `145ad035b35d46ed9a69cfc144d1b55a1769853e4616c308e11a188ff64eb768`
 
 ```
 Sl.	Pre-Opn	Time		Post-Opn Time		Shape
@@ -362,8 +362,8 @@ Sl.	Pre-Opn	Time		Post-Opn Time		Shape
 18	56937.128000000004	57247.47			(80008, 34)
 ```
 
-Family Name: `Vobfus`
-Sample Name: `0a77fc85a49ed22e8a829c57253cffff4af89a690cec2125ebdb53be09f64e86`
+* Family Name: `Vobfus`
+* Sample Name: `0a77fc85a49ed22e8a829c57253cffff4af89a690cec2125ebdb53be09f64e86`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -381,8 +381,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 12	33723.169	34027.326	(124580, 34)
 ```
 
-Family Name: `Yakes`
-Sample Name: `8608b882e4743facfbcd25cee09c1c6df10310fad411055ce1f3c4ceb0068350`
+* Family Name: `Yakes`
+* Sample Name: `8608b882e4743facfbcd25cee09c1c6df10310fad411055ce1f3c4ceb0068350`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
@@ -406,8 +406,8 @@ Sl.	Pre-Opn		Post-Opn	Shape
 18	34947.449	35261.168	(70440, 34)
 ```
 
-Family Name: `Zbot`
-Sample Name: `cf7e28635f7e351f0a456c247650dd8b97fe4618e7e9ee19ea1f2980a3ebf4db`
+* Family Name: `Zbot`
+* Sample Name: `cf7e28635f7e351f0a456c247650dd8b97fe4618e7e9ee19ea1f2980a3ebf4db`
 
 ```
 Sl.	Pre-Opn		Post-Opn	Shape
