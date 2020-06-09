@@ -11,7 +11,6 @@ __status__ = "Prototype"
 import os
 import glob
 import pandas as pd
-import numpy as np
 
 from time_series_analysis.attribute_container import (IRP_Operations_Container, Flags_Container, File_System_Container)
 import time_series_analysis.time_series_visualization as visualiser
@@ -209,7 +208,6 @@ def build_process_wise_file_system_container(dataset_names):
     return file_system_container
     
 
-
 def combined_ransomware_analysis(master_container):
     ''' This method takes in a conainter (nested dictionary) where the keys are ransomware family
     name and its value is a dictionay containing another container of different objects '''
@@ -318,12 +316,11 @@ def combined_ransomware_analysis(master_container):
         temp = []
         for ransomware_family_name in ransomware_family_names:
             try:
-                temp.append(entropy[ransomware_family_name][i] * 100)
+                temp.append(entropy[ransomware_family_name][i])
             except:
                 continue
-        #data.append(np.log(temp))
         data.append(temp)
-    visualiser.generate_simple_box_plot(data, "Entropy Feature Distribution among Ransomware Families", "Logarithm Values of Mean")
+    visualiser.generate_simple_box_plot(data, "Entropy Feature Distribution among Ransomware Families", "Mean Values")
     
     # --- Generate buffer length feature in box plot graph ---
     data = []    
@@ -334,9 +331,8 @@ def combined_ransomware_analysis(master_container):
                 temp.append(buffer_length[ransomware_family_name][i])
             except:
                 continue
-        #data.append(np.log(temp))
         data.append(temp)
-    visualiser.generate_simple_box_plot(data, "Buffer Length Feature Distribution among Ransomware Families", "Logarithm Values of Mean")
+    visualiser.generate_simple_box_plot(data, "Buffer Length Feature Distribution among Ransomware Families", "Mean Values")
     
     # --- Generate IRP Major Operation Type feature in box plot graph ---
     data = []
@@ -395,9 +391,8 @@ def combined_ransomware_analysis(master_container):
                 temp.append(irp_operation[ransomware_family_name][i])
             except:
                 continue
-        #data.append(np.log(temp))
         data.append(temp)
-    visualiser.generate_simple_box_plot(data, "IRP Operation Feature Distribution among Ransomware Families", "Logarithm Values of Unique Counts")
+    visualiser.generate_simple_box_plot(data, "IRP Operation Feature Distribution among Ransomware Families", "Unique Counts")
    
     
     ''' This is a static code written to generate the time series trend graphs for certain features
@@ -421,7 +416,7 @@ def combined_ransomware_analysis(master_container):
                                "Ransomware Unique File Accessed Trend", "Time", "Mean Counts")
         
     visualiser.generate_simple_line_graph(dataset['Time'].tolist(), dataset['Buffer Length'].tolist(),
-                               "Ransomware Buffer Length Feature Trend", "Time", "Mean Counts")
+                               "Ransomware Buffer Length Feature Trend", "Time", "Mean Counts") 
     
     visualiser.generate_simple_line_graph(dataset['Time'].tolist(), dataset['Entropy'].tolist(),
                                "Ransomware Entrpy Feature Trend", "Time", "Mean Counts")
