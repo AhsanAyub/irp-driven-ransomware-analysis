@@ -306,7 +306,191 @@ def comparitive_file_system_analysis_individual_family(container, family_name):
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Entropy_comparitive_individual_family.eps', format='eps', dpi=1200)
     myFig.savefig('time_series_analysis/Results/' + str(family_name) + '_Entropy_comparitive_individual_family.png', format='png', dpi=300)
 
+
+def generate_feature_median_value_from_dic(feature_dict, ransomware_family_names):
+    ''' Given a dictionary, generate the median value of the rows '''
     
+    median_list = []
+    
+    for i in range(18):
+        temp_list = []
+        for family in ransomware_family_names:
+            try:
+                temp_list.append(feature_dict[family][i])
+            except:
+                continue
+        median_list.append(np.median(temp_list))
+        print(median_list[i])
+    
+    return median_list
+
+
+def combined_file_system_feature_distribution_ransomware_and_benign(master_container):
+    ''' This function will take the master container where all the ransomware families
+    names are key, its values are dictionary. The second dictionary contains time
+    frames as keys while the objects of classes as values.
+    
+    From the object, the function goes through all the file system objects to generate
+    different time series graph between ransomware (all families combined) and benign. '''
+    
+    ransomware_family_names = []
+    
+    # File System features for further analysis
+    ransomware_file_object = {}
+    ransomware_unique_file_accessed = {}
+    ransomware_entropy = {}
+    ransomware_buffer_length = {}
+    
+    benign_file_object = {}
+    benign_unique_file_accessed = {}
+    benign_entropy = {}
+    benign_buffer_length = {}
+    
+    for ransomware_family in master_container:
+        # Temporary lists to populate the values for File System features
+        ransomware_temp_file_object = []
+        ransomware_temp_unique_file_accessed = []
+        ransomware_temp_entropy = []
+        ransomware_temp_buffer_length = []
+        
+        benign_temp_file_object = []
+        benign_temp_unique_file_accessed = []
+        benign_temp_entropy = []
+        benign_temp_buffer_length = []
+        
+        # Iterate through the master container to populate the dictionaries
+        for key in master_container[ransomware_family]:
+            for objects in master_container[ransomware_family][key]['ransomware']:
+                if isinstance(objects, File_System_Container): # Needed for file system features
+                    ransomware_temp_file_object.append(objects.get_file_object())
+                    ransomware_temp_unique_file_accessed.append(objects.get_file_accessed())
+                    ransomware_temp_entropy.append(objects.get_entropy()['mean_entropy'])
+                    ransomware_temp_buffer_length.append(objects.get_buffer_length()['mean_buffer_length'])
+                    
+                else:
+                    pass
+                
+            for objects in master_container[ransomware_family][key]['benign']:
+                if isinstance(objects, File_System_Container): # Needed for file system features
+                    benign_temp_file_object.append(objects.get_file_object())
+                    benign_temp_unique_file_accessed.append(objects.get_file_accessed())
+                    benign_temp_entropy.append(objects.get_entropy()['mean_entropy'])
+                    benign_temp_buffer_length.append(objects.get_buffer_length()['mean_buffer_length'])
+                    
+                else:
+                    pass
+        
+        ransomware_family_names.append(str(ransomware_family))  # This list will contain the list of families
+        
+        # Populate dictionaries where the keys are ransoware family names
+        ransomware_file_object[str(ransomware_family)] = ransomware_temp_file_object
+        ransomware_unique_file_accessed[str(ransomware_family)] = ransomware_temp_unique_file_accessed
+        ransomware_entropy[str(ransomware_family)] = ransomware_temp_entropy
+        ransomware_buffer_length[str(ransomware_family)] = ransomware_temp_buffer_length
+        
+        benign_file_object[str(ransomware_family)] = benign_temp_file_object
+        benign_unique_file_accessed[str(ransomware_family)] = benign_temp_unique_file_accessed
+        benign_entropy[str(ransomware_family)] = benign_temp_entropy
+        benign_buffer_length[str(ransomware_family)] = benign_temp_buffer_length
+        
+    # Delete all the temp lists
+    del (ransomware_temp_file_object, ransomware_temp_unique_file_accessed, ransomware_temp_entropy, ransomware_temp_buffer_length,
+    benign_temp_file_object, benign_temp_unique_file_accessed, benign_temp_entropy, benign_temp_buffer_length)
+    
+    ransomware_file_object['median'] = generate_feature_median_value_from_dic(ransomware_file_object, ransomware_family_names)
+    ransomware_unique_file_accessed['median'] = generate_feature_median_value_from_dic(ransomware_unique_file_accessed, ransomware_family_names)
+    ransomware_entropy['median'] = generate_feature_median_value_from_dic(ransomware_entropy, ransomware_family_names)
+    ransomware_buffer_length['median'] = generate_feature_median_value_from_dic(ransomware_buffer_length, ransomware_family_names)
+    
+    benign_file_object['median'] = generate_feature_median_value_from_dic(benign_file_object, ransomware_family_names)
+    benign_unique_file_accessed['median'] = generate_feature_median_value_from_dic(benign_unique_file_accessed, ransomware_family_names)
+    benign_entropy['median'] = generate_feature_median_value_from_dic(benign_entropy, ransomware_family_names)
+    benign_buffer_length['median'] = generate_feature_median_value_from_dic(benign_buffer_length, ransomware_family_names)
+    
+    time_intervals = [i * 5 for i in range(1,19)]
+    
+    # --- Time Series Plot of File Object Feature (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_file_object['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_file_object['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    for ii in range(18):
+        plt.text(ii-0.5, np.min(benign_file_object['median'])-100, format(int(ransomware_file_object['median'][ii]-benign_file_object['median'][ii]), ',d'), size=10, weight='bold')
+    plt.fill_between([i for i in range(18)], ransomware_file_object['median'], benign_file_object['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of File Object Feature', fontsize=20, weight='bold')
+    plt.ylabel('Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.ylim(np.min(benign_file_object['median'])-200, np.max(ransomware_file_object['median'])+200)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/File_Object_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/File_Object_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
+    
+    # --- Time Series Plot of Unique Files Accessed (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_unique_file_accessed['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_unique_file_accessed['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    for ii in range(18):
+        plt.text(ii-0.5, 0, format(int(ransomware_unique_file_accessed['median'][ii]-benign_unique_file_accessed['median'][ii]), ',d'), size=10, weight='bold')
+    plt.fill_between([i for i in range(18)], ransomware_unique_file_accessed['median'], benign_unique_file_accessed['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of Unique Files Accessed', fontsize=20, weight='bold')
+    plt.ylabel('Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.ylim(np.min(benign_unique_file_accessed['median'])-200, np.max(ransomware_unique_file_accessed['median'])+200)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/Unique_Files_Accessed_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/Unique_Files_Accessed_Ransomware_vs_Benign.png', format='png', dpi=150)
+    
+    # --- Time Series Plot of Entropy Feature (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_entropy['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_entropy['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    plt.fill_between([i for i in range(18)], ransomware_entropy['median'], benign_entropy['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of Entropy Feature', fontsize=20, weight='bold')
+    plt.ylabel('Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/Entropy_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/Entropy_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
+    
+    # --- Time Series Plot of Buffer Length Feature (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_buffer_length['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_buffer_length['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    for ii in range(18):
+        plt.text(ii-0.5, -700, format(int(ransomware_buffer_length['median'][ii]-benign_buffer_length['median'][ii]), ',d'), size=8.5, weight='bold')
+    plt.fill_between([i for i in range(18)], ransomware_buffer_length['median'], benign_buffer_length['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of Buffer Length Feature', fontsize=20, weight='bold')
+    plt.ylabel('Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.ylim(-1000, np.max(ransomware_buffer_length['median'])+200)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/Buffer_Length_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/Buffer_Length_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
+
+
 def generate_simple_box_plot(data, title, ylabel):
     ''' Generate a simple boxplot using mathplotlib
     where the data is a nested list. '''

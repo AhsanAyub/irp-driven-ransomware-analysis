@@ -11,6 +11,7 @@ __status__ = "Prototype"
 import os
 import glob
 import pandas as pd
+import numpy as np
 
 from time_series_analysis.attribute_container import (IRP_Operations_Container, Flags_Container, File_System_Container)
 import time_series_analysis.time_series_visualization as visualiser
@@ -207,6 +208,7 @@ def build_process_wise_file_system_container(dataset_names):
     # Return the container having all the objects        
     return file_system_container
     
+
 
 def combined_ransomware_analysis(master_container):
     ''' This method takes in a conainter (nested dictionary) where the keys are ransomware family
@@ -426,21 +428,21 @@ def combined_ransomware_analysis(master_container):
     
     # Delete the variables
     del temp, data, dataset
-    
+
 
 if __name__ == '__main__':
     
     cwd = os.getcwd()   # Current project working direction
     
     # Get the feature containers of all the 5 mins time chunk datasets
-    containers = build_attribute_containers([i for i in glob.glob(str(cwd) + '/Dataset/TeslaCrypt/' + '*.gz')])
+    '''containers = build_attribute_containers([i for i in glob.glob(str(cwd) + '/Dataset/TeslaCrypt/' + '*.gz')])
 
     visualiser.self_irp_operations_analysis(containers, "TeslaCrypt")
     visualiser.self_irp_flags_analysis(containers, "TeslaCrypt")
     visualiser.self_file_system_analysis(containers, "TeslaCrypt")
     
     file_system_container = build_process_wise_file_system_container([i for i in glob.glob(str(cwd) + '/Dataset/TeslaCrypt/' + '*.gz')])
-    visualiser.comparitive_file_system_analysis_individual_family(file_system_container, "TeslaCrypt")
+    visualiser.comparitive_file_system_analysis_individual_family(file_system_container, "TeslaCrypt")'''
     
     # Get all the ransomware family datasets' paths to build the master container step by step
     ransomware_family_name_paths = [x[0] for x in os.walk(str(cwd) + '/Dataset')]
@@ -454,6 +456,9 @@ if __name__ == '__main__':
 
     # Perform the time series analysis for combined ransomware families dataset
     combined_ransomware_analysis(master_container)
+    
+    # Perform the time series analsis for combined ransomware and its benign observations
+    visualiser.combined_file_system_feature_distribution_ransomware_and_benign(master_container)
     
     # Free memory
     del ransomware_family_name_paths, ransomware_family_name_path, master_container, containers, file_system_container
