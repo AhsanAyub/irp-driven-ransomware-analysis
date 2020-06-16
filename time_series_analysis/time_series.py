@@ -57,7 +57,7 @@ def build_attribute_containers(dataset_names):
                 # Set FSF operations for both types of datasets
                 benign_irp_operations_container.set_operation_fsf(benign_instances['operation_fsf'].sum())
                 ransomware_irp_operations_container.set_operation_fsf(ransomware_instances['operation_fsf'].sum())
-                # Set FSO operations for both types of datasets
+                # Set FIO operations for both types of datasets
                 benign_irp_operations_container.set_operation_fio(benign_instances['operation_fio'].sum())
                 ransomware_irp_operations_container.set_operation_fio(ransomware_instances['operation_fio'].sum())
                 
@@ -228,6 +228,8 @@ def combined_ransomware_analysis(master_container):
     
     # IRP operation feature for further analysis
     irp_operation = {}
+    fsf_operation = {}
+    fio_operation = {}
     
     for ransomware_family in master_container:
         # Temporary lists to populate the values for File System features
@@ -244,6 +246,8 @@ def combined_ransomware_analysis(master_container):
         
         # Temporary lists to populate the values for Flags features
         temp_irp_operation = []
+        temp_fsf_operation = []
+        temp_fio_operation = []
         
         # Iterate through the master container to populate the dictionaries
         for key in master_container[ransomware_family]:
@@ -262,29 +266,53 @@ def combined_ransomware_analysis(master_container):
 
                 elif isinstance(objects, IRP_Operations_Container): # Needed for irp operation feature          
                     temp_irp_operation.append(objects.get_operation_irp())
+                    temp_fsf_operation.append(objects.get_operation_fsf())
+                    temp_fio_operation.append(objects.get_operation_fio())
                     
                 else: # Highly unlikely this will occur
                     pass
         
         ransomware_family_names.append(str(ransomware_family))  # This list will contain the list of families
         
-        # Populate dictionaries where the keys are ransoware family names
+        ''' Populate dictionaries where the keys are ransoware family names '''
+        # File system feature space
         file_object[str(ransomware_family)] = temp_file_object
         unique_file_accessed[str(ransomware_family)] = temp_unique_file_accessed
         entropy[str(ransomware_family)] = temp_entropy
         buffer_length[str(ransomware_family)] = temp_buffer_length
         
+        # Flag-based feature space
         irp_flags[str(ransomware_family)] = temp_irp_flags
         irp_major_operation_type[str(ransomware_family)] = temp_irp_major_operation_type
         irp_minor_operation_type[str(ransomware_family)] = temp_irp_minor_operation_type
         irp_status[str(ransomware_family)] = temp_irp_status
         
+        # IRP Operation based feature space
         irp_operation[str(ransomware_family)] = temp_irp_operation
-        
-    # Delete all the temp lists
-    del temp_file_object, temp_unique_file_accessed, temp_entropy, temp_buffer_length, temp_irp_flags,
-    temp_irp_major_operation_type, temp_irp_minor_operation_type, temp_irp_status, temp_irp_operation
+        fsf_operation[str(ransomware_family)] = temp_fsf_operation
+        fio_operation[str(ransomware_family)] = temp_fio_operation
     
+    ''' A code snippet that used to generate the data distribution csv
+    for i in range(18):
+        temp = []
+        for ransomware_family_name in ransomware_family_names:
+            try:
+                temp.append(fio_operation[ransomware_family_name][i])
+            except:
+                pass
+        print(np.mean(temp)) '''
+    
+    # --- Generate IRP Major Operation Type feature in box plot graph ---
+    data = []
+    for i in range(18):
+        temp = []
+        for ransomware_family_name in ransomware_family_names:
+            try:
+                temp.append(irp_minor_operation_type[ransomware_family_name][i])
+            except:
+                continue
+        data.append(temp)
+    visualiser.generate_simple_box_plot(data, "IRP Minor Operation Type Feature Distribution\namong Ransomware Families", "Unique Counts")
     
     # --- Generate file object feature in box plot graph ---
     data = []    
@@ -393,15 +421,44 @@ def combined_ransomware_analysis(master_container):
                 continue
         data.append(temp)
     visualiser.generate_simple_box_plot(data, "IRP Operation Feature Distribution among Ransomware Families", "Unique Counts")
-   
     
-    ''' This is a static code written to generate the time series trend graphs for certain features
-    saved in a CSV file. The features values are means from all the combined ransoware families. '''
+    # --- Generate FSF Operation Type feature in box plot graph ---
+    data = []
+    for i in range(18):
+        temp = []
+        for ransomware_family_name in ransomware_family_names:
+            try:
+                temp.append(fsf_operation[ransomware_family_name][i])
+            except:
+                continue
+        data.append(temp)
+    visualiser.generate_simple_box_plot(data, "FSF Operation Feature Distribution among Ransomware Families", "Unique Counts")   
+    
+    # --- Generate FIO Operation Type feature in box plot graph ---
+    data = []
+    for i in range(18):
+        temp = []
+        for ransomware_family_name in ransomware_family_names:
+            try:
+                temp.append(fio_operation[ransomware_family_name][i])
+            except:
+                continue
+        data.append(temp)
+    visualiser.generate_simple_box_plot(data, "FIO Operation Feature Distribution among Ransomware Families", "Unique Counts")   
+    
+    '''This is a static code written to generate the time series trend graphs for certain features
+    saved in a CSV file. The features values are means from all the combined ransoware families. 
     
     dataset = pd.read_csv(str(cwd) + '/time_series_analysis/Results/Combined/ransomware_combined_dump_feature_distribution.csv')
    
     visualiser.generate_simple_line_graph(dataset['Time'].tolist(), dataset['IRP Operation'].tolist(),
                                "Ransomware IRP Operation Feature Trend", "Time", "Mean Counts")
+    
+    visualiser.generate_simple_line_graph(dataset['Time'].tolist(), dataset['FSF Operation'].tolist(),
+                               "Ransomware FSF Operation Feature Trend", "Time", "Mean Counts")
+    
+    visualiser.generate_simple_line_graph(dataset['Time'].tolist(), dataset['FIO Operation'].tolist(),
+                               "Ransomware FIO Operation Feature Trend", "Time", "Mean Counts")
    
     visualiser.generate_simple_line_graph(dataset['Time'].tolist(), dataset['IRP Flags'].tolist(),
                                "Ransomware IRP Flags Feature Trend", "Time", "Mean Unique Counts")
@@ -419,10 +476,11 @@ def combined_ransomware_analysis(master_container):
                                "Ransomware Buffer Length Feature Trend", "Time", "Mean Counts") 
     
     visualiser.generate_simple_line_graph(dataset['Time'].tolist(), dataset['Entropy'].tolist(),
-                               "Ransomware Entrpy Feature Trend", "Time", "Mean Counts")
-    
+                               "Ransomware Entrpy Feature Trend", "Time", "Mean Counts") '''
+
+                                          
     # Delete the variables
-    del temp, data, dataset
+    #del temp, data, dataset
 
 
 if __name__ == '__main__':

@@ -346,6 +346,26 @@ def combined_file_system_feature_distribution_ransomware_and_benign(master_conta
     benign_entropy = {}
     benign_buffer_length = {}
     
+    # Flags based features for further analysis
+    ransomware_irp_flags = {}
+    ransomware_irp_major_operation_type = {}
+    ransomware_irp_minor_operation_type = {}
+    ransomware_irp_status = {}
+    
+    benign_irp_flags = {}
+    benign_irp_major_operation_type = {}
+    benign_irp_minor_operation_type = {}
+    benign_irp_status = {}
+    
+    # IRP operation feature for further analysis
+    ransomware_irp_operation = {}
+    ransomware_fsf_operation = {}
+    ransomware_fio_operation = {}
+    
+    benign_irp_operation = {}
+    benign_fsf_operation = {}
+    benign_fio_operation = {}
+
     for ransomware_family in master_container:
         # Temporary lists to populate the values for File System features
         ransomware_temp_file_object = []
@@ -358,6 +378,26 @@ def combined_file_system_feature_distribution_ransomware_and_benign(master_conta
         benign_temp_entropy = []
         benign_temp_buffer_length = []
         
+        # Temporary lists to populate the values for Flag based features
+        ransomware_temp_irp_flags = []
+        ransomware_temp_irp_major_operation_type = []
+        ransomware_temp_irp_minor_operation_type = []
+        ransomware_temp_irp_status = []
+        
+        benign_temp_irp_flags = []
+        benign_temp_irp_major_operation_type = []
+        benign_temp_irp_minor_operation_type = []
+        benign_temp_irp_status = []
+        
+        # Temporary lists to populate the values for IRP operation features
+        ransomware_temp_irp_operation = []
+        ransomware_temp_fsf_operation = []
+        ransomware_temp_fio_operation = []
+        
+        benign_temp_irp_operation = []
+        benign_temp_fsf_operation = []
+        benign_temp_fio_operation = []
+        
         # Iterate through the master container to populate the dictionaries
         for key in master_container[ransomware_family]:
             for objects in master_container[ransomware_family][key]['ransomware']:
@@ -366,6 +406,17 @@ def combined_file_system_feature_distribution_ransomware_and_benign(master_conta
                     ransomware_temp_unique_file_accessed.append(objects.get_file_accessed())
                     ransomware_temp_entropy.append(objects.get_entropy()['mean_entropy'])
                     ransomware_temp_buffer_length.append(objects.get_buffer_length()['mean_buffer_length'])
+                    
+                elif isinstance(objects, Flags_Container): # Needed for flags based features
+                    ransomware_temp_irp_flags.append(objects.get_irp_flags()['irp_flag'])
+                    ransomware_temp_irp_major_operation_type.append(objects.get_major_operation_type())
+                    ransomware_temp_irp_minor_operation_type.append(objects.get_minor_operation_type())
+                    ransomware_temp_irp_status.append(objects.get_status())
+
+                elif isinstance(objects, IRP_Operations_Container): # Needed for irp operation feature          
+                    ransomware_temp_irp_operation.append(objects.get_operation_irp())
+                    ransomware_temp_fsf_operation.append(objects.get_operation_fsf())
+                    ransomware_temp_fio_operation.append(objects.get_operation_fio())
                     
                 else:
                     pass
@@ -377,12 +428,24 @@ def combined_file_system_feature_distribution_ransomware_and_benign(master_conta
                     benign_temp_entropy.append(objects.get_entropy()['mean_entropy'])
                     benign_temp_buffer_length.append(objects.get_buffer_length()['mean_buffer_length'])
                     
+                elif isinstance(objects, Flags_Container): # Needed for flags based features
+                    benign_temp_irp_flags.append(objects.get_irp_flags()['irp_flag'])
+                    benign_temp_irp_major_operation_type.append(objects.get_major_operation_type())
+                    benign_temp_irp_minor_operation_type.append(objects.get_minor_operation_type())
+                    benign_temp_irp_status.append(objects.get_status())
+
+                elif isinstance(objects, IRP_Operations_Container): # Needed for irp operation feature          
+                    benign_temp_irp_operation.append(objects.get_operation_irp())
+                    benign_temp_fsf_operation.append(objects.get_operation_fsf())
+                    benign_temp_fio_operation.append(objects.get_operation_fio())
+                    
                 else:
                     pass
         
         ransomware_family_names.append(str(ransomware_family))  # This list will contain the list of families
         
-        # Populate dictionaries where the keys are ransoware family names
+        ''' Populate dictionaries where the keys are ransoware family names '''
+        # File system feature space
         ransomware_file_object[str(ransomware_family)] = ransomware_temp_file_object
         ransomware_unique_file_accessed[str(ransomware_family)] = ransomware_temp_unique_file_accessed
         ransomware_entropy[str(ransomware_family)] = ransomware_temp_entropy
@@ -393,10 +456,28 @@ def combined_file_system_feature_distribution_ransomware_and_benign(master_conta
         benign_entropy[str(ransomware_family)] = benign_temp_entropy
         benign_buffer_length[str(ransomware_family)] = benign_temp_buffer_length
         
-    # Delete all the temp lists
-    del (ransomware_temp_file_object, ransomware_temp_unique_file_accessed, ransomware_temp_entropy, ransomware_temp_buffer_length,
-    benign_temp_file_object, benign_temp_unique_file_accessed, benign_temp_entropy, benign_temp_buffer_length)
-    
+        # Flag-based feature space
+        ransomware_irp_flags[str(ransomware_family)] = ransomware_temp_irp_flags
+        ransomware_irp_major_operation_type[str(ransomware_family)] = ransomware_temp_irp_major_operation_type
+        ransomware_irp_minor_operation_type[str(ransomware_family)] = ransomware_temp_irp_minor_operation_type
+        ransomware_irp_status[str(ransomware_family)] = ransomware_temp_irp_status
+        
+        benign_irp_flags[str(ransomware_family)] = benign_temp_irp_flags
+        benign_irp_major_operation_type[str(ransomware_family)] = benign_temp_irp_major_operation_type
+        benign_irp_minor_operation_type[str(ransomware_family)] = benign_temp_irp_minor_operation_type
+        benign_irp_status[str(ransomware_family)] = benign_temp_irp_status
+        
+        # IRP Operation based feature space
+        ransomware_irp_operation[str(ransomware_family)] = ransomware_temp_irp_operation
+        ransomware_fsf_operation[str(ransomware_family)] = ransomware_temp_fsf_operation
+        ransomware_fio_operation[str(ransomware_family)] = ransomware_temp_fio_operation
+        
+        benign_irp_operation[str(ransomware_family)] = benign_temp_irp_operation
+        benign_fsf_operation[str(ransomware_family)] = benign_temp_fsf_operation
+        benign_fio_operation[str(ransomware_family)] = benign_temp_fio_operation
+            
+    ''' Add the median values to the same dictionaries '''
+    # File system feature space
     ransomware_file_object['median'] = generate_feature_median_value_from_dic(ransomware_file_object, ransomware_family_names)
     ransomware_unique_file_accessed['median'] = generate_feature_median_value_from_dic(ransomware_unique_file_accessed, ransomware_family_names)
     ransomware_entropy['median'] = generate_feature_median_value_from_dic(ransomware_entropy, ransomware_family_names)
@@ -407,6 +488,27 @@ def combined_file_system_feature_distribution_ransomware_and_benign(master_conta
     benign_entropy['median'] = generate_feature_median_value_from_dic(benign_entropy, ransomware_family_names)
     benign_buffer_length['median'] = generate_feature_median_value_from_dic(benign_buffer_length, ransomware_family_names)
     
+    # Flag-based feature space
+    ransomware_irp_flags['median'] = generate_feature_median_value_from_dic(ransomware_irp_flags, ransomware_family_names)
+    ransomware_irp_major_operation_type['median'] = generate_feature_median_value_from_dic(ransomware_irp_major_operation_type, ransomware_family_names)
+    ransomware_irp_minor_operation_type['median'] = generate_feature_median_value_from_dic(ransomware_irp_minor_operation_type, ransomware_family_names)
+    ransomware_irp_status['median'] = generate_feature_median_value_from_dic(ransomware_irp_status, ransomware_family_names)
+    
+    benign_irp_flags['median'] = generate_feature_median_value_from_dic(benign_irp_flags, ransomware_family_names)
+    benign_irp_major_operation_type['median'] = generate_feature_median_value_from_dic(benign_irp_major_operation_type, ransomware_family_names)
+    benign_irp_minor_operation_type['median'] = generate_feature_median_value_from_dic(benign_irp_minor_operation_type, ransomware_family_names)
+    benign_irp_status['median'] = generate_feature_median_value_from_dic(benign_irp_status, ransomware_family_names)
+    
+    # IRP Operation based feature space
+    ransomware_irp_operation['median'] = generate_feature_median_value_from_dic(ransomware_irp_operation, ransomware_family_names)
+    ransomware_fsf_operation['median'] = generate_feature_median_value_from_dic(ransomware_fsf_operation, ransomware_family_names)
+    ransomware_fio_operation['median'] = generate_feature_median_value_from_dic(ransomware_fio_operation, ransomware_family_names)
+    
+    benign_irp_operation['median'] = generate_feature_median_value_from_dic(benign_irp_operation, ransomware_family_names)
+    benign_fsf_operation['median'] = generate_feature_median_value_from_dic(benign_fsf_operation, ransomware_family_names)
+    benign_fio_operation['median'] = generate_feature_median_value_from_dic(benign_fio_operation, ransomware_family_names)
+    
+    # Static list for xtics in graphs
     time_intervals = [i * 5 for i in range(1,19)]
     
     # --- Time Series Plot of File Object Feature (Ransomware vs Benign) ---
@@ -419,7 +521,7 @@ def combined_file_system_feature_distribution_ransomware_and_benign(master_conta
         plt.text(ii-0.5, np.min(benign_file_object['median'])-100, format(int(ransomware_file_object['median'][ii]-benign_file_object['median'][ii]), ',d'), size=10, weight='bold')
     plt.fill_between([i for i in range(18)], ransomware_file_object['median'], benign_file_object['median'], color="grey", alpha="0.3")
     plt.title('Time Series Plot of File Object Feature', fontsize=20, weight='bold')
-    plt.ylabel('Median Counts', fontsize=18, weight='bold')
+    plt.ylabel('Unique Median Counts', fontsize=18, weight='bold')
     plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
     plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
     plt.ylim(np.min(benign_file_object['median'])-200, np.max(ransomware_file_object['median'])+200)
@@ -490,6 +592,153 @@ def combined_file_system_feature_distribution_ransomware_and_benign(master_conta
     myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/Buffer_Length_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
     myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/Buffer_Length_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
 
+    # --- Time Series Plot of IRP Flags Feature (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_irp_flags['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_irp_flags['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    for ii in range(18):
+        plt.text(ii-0.5, 15, int(ransomware_irp_flags['median'][ii]-benign_irp_flags['median'][ii]), size=10, weight='bold')
+    plt.fill_between([i for i in range(18)], ransomware_irp_flags['median'], benign_irp_flags['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of IRP Flags Feature', fontsize=20, weight='bold')
+    plt.ylabel('Unique Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.ylim(14, 29)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/IRP_Flags_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/IRP_Flags_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
+    
+    # --- Time Series Plot of IRP Major Opn Type Feature (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_irp_major_operation_type['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_irp_major_operation_type['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    for ii in range(18):
+        plt.text(ii-0.5, 18, int(ransomware_irp_major_operation_type['median'][ii]-benign_irp_major_operation_type['median'][ii]), size=10, weight='bold')
+    plt.fill_between([i for i in range(18)], ransomware_irp_major_operation_type['median'], benign_irp_major_operation_type['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of IRP Major Operation Type Feature', fontsize=20, weight='bold')
+    plt.ylabel('Unique Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.ylim(17, 22.5)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/IRP_Major_Operation_Type_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/IRP_Major_Operation_Type_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
+    
+    # --- Time Series Plot of IRP Minor Opn Type Feature (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_irp_minor_operation_type['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_irp_minor_operation_type['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    for ii in range(18):
+        plt.text(ii-0.5, 2, int(ransomware_irp_minor_operation_type['median'][ii]-benign_irp_minor_operation_type['median'][ii]), size=10, weight='bold')
+    plt.fill_between([i for i in range(18)], ransomware_irp_minor_operation_type['median'], benign_irp_minor_operation_type['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of IRP Minor Operation Type Feature', fontsize=20, weight='bold')
+    plt.ylabel('Unique Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.ylim(1, 9)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/IRP_Minor_Operation_Type_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/IRP_Minor_Operation_Type_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
+    
+    # --- Time Series Plot of IRP Status Feature (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_irp_status['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_irp_status['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    for ii in range(18):
+        plt.text(ii-0.5, 6, int(ransomware_irp_status['median'][ii]-benign_irp_status['median'][ii]), size=10, weight='bold')
+    plt.fill_between([i for i in range(18)], ransomware_irp_status['median'], benign_irp_status['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of IRP Status Feature', fontsize=20, weight='bold')
+    plt.ylabel('Unique Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.ylim(5, 20)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/IRP_Status_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/IRP_Status_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
+    
+    # --- Time Series Plot of IRP Operation Feature (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_irp_operation['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_irp_operation['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    for ii in range(18):
+        plt.text(ii-0.5, 10000, format(int(ransomware_irp_operation['median'][ii]-benign_irp_operation['median'][ii]), ',d'), size=9, weight='bold')
+    plt.fill_between([i for i in range(18)], ransomware_irp_operation['median'], benign_irp_operation['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of IRP Operation Feature', fontsize=20, weight='bold')
+    plt.ylabel('Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.ylim(5000, np.max(ransomware_irp_operation['median'])+10000)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/IRP_Opeartions_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/IRP_Opeartions_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
+    
+    # --- Time Series Plot of FSF Operation Feature (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_fsf_operation['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_fsf_operation['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    for ii in range(18):
+        plt.text(ii-0.5, -100, format(int(ransomware_fsf_operation['median'][ii]-benign_fsf_operation['median'][ii]), ',d'), size=9, weight='bold')
+    plt.fill_between([i for i in range(18)], ransomware_fsf_operation['median'], benign_fsf_operation['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of FSF Operation Feature', fontsize=20, weight='bold')
+    plt.ylabel('Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.ylim(-1000, np.max(ransomware_fsf_operation['median'])+1000)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/FSF_Opeartions_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/FSF_Opeartions_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
+    
+    # --- Time Series Plot of FIO Operation Feature (Ransomware vs Benign) ---
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    plt.plot(ransomware_fio_operation['median'], linestyle = 'dotted', marker = 'o', lw = 2, alpha=0.8, color = 'black')
+    plt.plot(benign_fio_operation['median'], linestyle = 'dashed', marker = 's', lw = 2, alpha=0.8, color = 'black')
+    plt.xticks(range(len(time_intervals)), time_intervals, fontsize=16)
+    for ii in range(18):
+        plt.text(ii-0.5, 500, format(int(ransomware_fio_operation['median'][ii]-benign_fio_operation['median'][ii]), ',d'), size=9, weight='bold')
+    plt.fill_between([i for i in range(18)], ransomware_fio_operation['median'], benign_fio_operation['median'], color="grey", alpha="0.3")
+    plt.title('Time Series Plot of FIO Operation Feature', fontsize=20, weight='bold')
+    plt.ylabel('Median Counts', fontsize=18, weight='bold')
+    plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
+    plt.legend(['Ransomware', 'Benign'] , loc='best', fontsize=14)
+    plt.ylim(100, np.max(ransomware_fio_operation['median'])+200)
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    # Saving the figure
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/FIO_Opeartions_Feature_Ransomware_vs_Benign.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/Combined/Time_Series_Plot/FIO_Opeartions_Feature_Ransomware_vs_Benign.png', format='png', dpi=150)
+
 
 def generate_simple_box_plot(data, title, ylabel):
     ''' Generate a simple boxplot using mathplotlib
@@ -497,7 +746,7 @@ def generate_simple_box_plot(data, title, ylabel):
     
     plt.clf() # Clear figure
     myFig = plt.figure(figsize=[12,10])
-    plt.boxplot(data, vert=True, widths=0.8, patch_artist=True,
+    bp = plt.boxplot(data, vert=True, widths=0.8, patch_artist=True,
             boxprops=dict(facecolor='black', color='black'),
             capprops=dict(color='black'),
             whiskerprops=dict(color='black'),
@@ -511,9 +760,20 @@ def generate_simple_box_plot(data, title, ylabel):
     plt.yticks(fontsize=16)
     plt.show()
     
+    '''for i in range(18):
+        print(bp['whiskers'][i*2].get_ydata()[1])
+        print(bp['boxes'][i].get_ydata()[1])
+        print(bp['medians'][i].get_ydata()[1])
+        print(bp['boxes'][i].get_ydata()[2])
+        print(bp['whiskers'][(i*2)+1].get_ydata()[1]'''
+    
+    print(str(title))
+    for i in range(18):
+        print(bp['whiskers'][i*2].get_ydata()[1], np.percentile(data[i], 25), bp['medians'][i].get_ydata()[1], np.percentile(data[i], 75), bp['whiskers'][(i*2)+1].get_ydata()[1])
+    
     # Saving the figure
-    myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_')  + '.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_') + '.png', format='png', dpi=300)
+    '''myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_')  + '.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_') + '.png', format='png', dpi=300)'''
     
     
 def generate_simple_line_graph(X, Y, title, x_label, y_label):
