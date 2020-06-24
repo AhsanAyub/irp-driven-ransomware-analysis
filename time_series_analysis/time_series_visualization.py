@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import math
 
-from time_series_analysis.attribute_container import (IRP_Operations_Container, Flags_Container, File_System_Container)
+from attribute_container import (IRP_Operations_Container, Flags_Container, File_System_Container)
 
 def self_irp_operations_analysis(container, family_name):
     ''' visualize the types of the IRP operations count for a single ransomware family '''
@@ -772,8 +772,8 @@ def generate_simple_box_plot(data, title, ylabel):
         print(bp['whiskers'][i*2].get_ydata()[1], np.percentile(data[i], 25), bp['medians'][i].get_ydata()[1], np.percentile(data[i], 75), bp['whiskers'][(i*2)+1].get_ydata()[1])
     
     # Saving the figure
-    '''myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_')  + '.eps', format='eps', dpi=1200)
-    myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_') + '.png', format='png', dpi=300)'''
+    myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_')  + '.eps', format='eps', dpi=1200)
+    myFig.savefig('time_series_analysis/Results/' + str(title).replace(' ', '_') + '.png', format='png', dpi=300)
     
     
 def generate_simple_line_graph(X, Y, title, x_label, y_label):

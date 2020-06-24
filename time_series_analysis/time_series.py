@@ -12,8 +12,9 @@ import os
 import glob
 import pandas as pd
 
-from time_series_analysis.attribute_container import (IRP_Operations_Container, Flags_Container, File_System_Container)
+from attribute_container import (IRP_Operations_Container, Flags_Container, File_System_Container)
 import time_series_analysis.time_series_visualization as visualiser
+import helper as helper
 
 
 def build_attribute_containers(dataset_names):
@@ -497,13 +498,11 @@ if __name__ == '__main__':
     file_system_container = build_process_wise_file_system_container([i for i in glob.glob(str(cwd) + '/Dataset/TeslaCrypt/' + '*.gz')])
     visualiser.comparitive_file_system_analysis_individual_family(file_system_container, "TeslaCrypt")'''
     
-    # Get all the ransomware family datasets' paths to build the master container step by step
-    ransomware_family_name_paths = [x[0] for x in os.walk(str(cwd) + '/Dataset')]
-    ransomware_family_name_paths = sorted(ransomware_family_name_paths)
-    ransomware_family_name_paths.pop(0)    # Remove the dataset root folder
-    master_container = {}
+    # Get all the ransomware family datasets' paths from helper
+    ransomware_family_name_paths = helper.get_all_ransomsomware_dataset_file_paths()
     
     # Master container is going to be built through this loop
+    master_container = {}
     for ransomware_family_name_path in ransomware_family_name_paths:
         master_container[str(ransomware_family_name_path).split('/')[-1]] = build_attribute_containers([i for i in glob.glob(str(ransomware_family_name_path) + '/*.gz')])
 
