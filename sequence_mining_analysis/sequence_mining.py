@@ -64,6 +64,83 @@ def generate_irp_major_operation_type_pattern_count():
     return irp_major_operation_type_pattern_count_container
 
 
+def show_benign_irp_major_operation_type_pattern_count():
+    ''' The utility method parses through all the benign processes' instances in the 
+    ransomware datasets. It stores the maximum counts of all the five pre-definited
+    patterns and prints the results in the console without storing it. '''
+    
+    ransomsomware_family_paths = helper.get_all_ransomsomware_family_paths()
+    for ransomsomware_family_path in ransomsomware_family_paths:
+        ransomware_family_name = ransomsomware_family_path.split('/')[-1]
+        ransomware_family_dataset_paths = helper.get_ransomsomware_family_datasete_paths(ransomsomware_family_path)
+        ransomware_family_dataset_paths = ransomware_family_dataset_paths
+        
+        # Lists to store the benign patterns
+        benign_bc_sequence = []
+        benign_bcC_sequence = []
+        benign_bcG_sequence = []
+        benign_EGbc_sequence = []
+        benign_EGbcC_sequence = []
+        
+        for ransomware_family_dataset_path in ransomware_family_dataset_paths:
+            dataset = pd.read_pickle(ransomware_family_dataset_path, compression='gzip')
+            dataset = dataset.drop(dataset[(dataset['class'] != 0)].index) # benign instances
+            process_names = dataset['process_name'].unique().tolist()
+        
+            # To store max counts of each sequence
+            counts_bc_sequence = 0
+            counts_bcC_sequence = 0
+            counts_bcG_sequence = 0
+            counts_EGbc_sequence = 0
+            counts_EGbcC_sequence = 0
+            
+            # Iterate through all the benign processes
+            for process_name in process_names:
+                sample = dataset.drop(dataset[(dataset['process_name'] != process_name)].index)
+                irp_major_operation_type = sample.major_operation_type
+                irp_major_operation_type.replace('', np.NaN)
+                irp_major_operation_type.dropna()
+                irp_major_operation_type = irp_major_operation_type.map(definations.irp_major_operation).tolist()
+                irp_major_operation_type = ''.join([str(item) for item in irp_major_operation_type])
+            
+                temp = len(re.findall(r"bc", irp_major_operation_type))
+                if temp >= counts_bc_sequence:
+                    counts_bc_sequence = temp
+                    
+                temp = len(re.findall(r"bcC", irp_major_operation_type))
+                if temp >= counts_bcC_sequence:
+                    counts_bcC_sequence = temp
+                    
+                temp = len(re.findall(r"bcG", irp_major_operation_type))
+                if temp >= counts_bcG_sequence:
+                    counts_bcG_sequence = temp
+                    
+                temp = len(re.findall(r"EGbc", irp_major_operation_type))
+                if temp >= counts_EGbc_sequence:
+                    counts_EGbc_sequence = temp
+                    
+                temp = len(re.findall(r"E(Gbc)+C", irp_major_operation_type))
+                if temp >= counts_EGbcC_sequence:
+                    counts_EGbcC_sequence = temp
+            
+            # Append the maximum count to the list
+            benign_bc_sequence.append(counts_bc_sequence)
+            benign_bcC_sequence.append(counts_bcC_sequence)
+            benign_bcG_sequence.append(counts_bcG_sequence)
+            benign_EGbc_sequence.append(counts_EGbc_sequence)
+            benign_EGbcC_sequence.append(counts_EGbcC_sequence)
+    
+        # Shows the results
+        print(ransomware_family_name)
+        print('b->c\tb->c->C\tb->c->G\tE->G->b->c\tE->(G->b->c)->C')
+        for i in range(len(benign_bc_sequence)):
+            print(str(benign_bc_sequence[i]) + '\t' +
+                  str(benign_bcC_sequence[i]) + '\t' +
+                  str(benign_bcG_sequence[i]) + '\t' +
+                  str(benign_EGbc_sequence[i]) + '\t\t' +
+                  str(benign_EGbcC_sequence[i]))
+    
+
 # Driver program
 if __name__ == '__main__':
     # Get the IRP Major Operation Type container for futher analysis
@@ -152,3 +229,6 @@ if __name__ == '__main__':
     # Saving the figure
     myFig.savefig('sequence_mining_analysis/Results/Time_Series_Plot_IRP_Major_Operation_Type_Major_Three_Sequences.eps', format='eps', dpi=1200)
     myFig.savefig('sequence_mining_analysis/Results/Time_Series_Plot_IRP_Major_Operation_Type_Major_Three_Sequences.png', format='png', dpi=150)
+
+    # Show the patterns' counts of the IRP major operaton type for benign processes
+    show_benign_irp_major_operation_type_pattern_count()
