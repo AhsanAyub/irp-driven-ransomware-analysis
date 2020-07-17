@@ -17,13 +17,12 @@ import helper as helper
 import sequence_mining_analysis.IRP_Code_Definations as definations
 import time_series_analysis.time_series_visualization as visualiser
 
-def generate_irp_major_operation_type_pattern_count():
+def generate_irp_major_operation_type_pattern_count(ransomsomware_family_paths):
     ''' This utility method will scan through all the ransomware family datasets
     and then measure the counts of 5 pre-defined patterns / sequences counts
     appeared in the datasets. The method will return the counts in a dictionary. '''
     
     irp_major_operation_type_pattern_count_container = {}
-    ransomsomware_family_paths = helper.get_all_ransomsomware_family_paths()
     for ransomsomware_family_path in ransomsomware_family_paths:
         ransomware_family_name = ransomsomware_family_path.split('/')[-1]
         ransomware_family_dataset_paths = helper.get_ransomsomware_family_datasete_paths(ransomsomware_family_path)
@@ -69,7 +68,7 @@ def show_benign_irp_major_operation_type_pattern_count():
     ransomware datasets. It stores the maximum counts of all the five pre-definited
     patterns and prints the results in the console without storing it. '''
     
-    ransomsomware_family_paths = helper.get_all_ransomsomware_family_paths()
+    ransomsomware_family_paths = helper.get_train_ransomsomware_family_paths()()
     for ransomsomware_family_path in ransomsomware_family_paths:
         ransomware_family_name = ransomsomware_family_path.split('/')[-1]
         ransomware_family_dataset_paths = helper.get_ransomsomware_family_datasete_paths(ransomsomware_family_path)
@@ -141,12 +140,11 @@ def show_benign_irp_major_operation_type_pattern_count():
                   str(benign_EGbcC_sequence[i]))
     
 
-# Driver program
-if __name__ == '__main__':
-    # Get the IRP Major Operation Type container for futher analysis
-    irp_major_operation_type_pattern_count_container = generate_irp_major_operation_type_pattern_count()
+def get_ransomware_process_sequence_counts(container):
+    ''' With the IRP Major Operation Type feature's pattern cointainer given to this
+    method, it will return 5 lists of the counts of the predefinied seqiuences '''
     
-    # Sequences list to plot different graphical illustrations
+    # Sequences list for predefined sequences' counts
     bc_sequence = []
     bcC_sequence = []
     bcG_sequence = []
@@ -155,7 +153,7 @@ if __name__ == '__main__':
     
     ''' Populate all the sequences' lists respective to time; hence it will be a nested
     list. The first row will indicate the time at 5 min, the follwing is 10 min, and so on. '''
-    ransomware_family_names = [family_name.split('/')[-1] for family_name in helper.get_all_ransomsomware_family_paths()]
+    ransomware_family_names = [key for key in container]
     time_intervals = [i * 5 for i in range(1,19)]
     for time in time_intervals:
         # Temp lists to populate its main lists
@@ -166,11 +164,11 @@ if __name__ == '__main__':
         temp_EGbcC_sequence = []
         for ransomware_family_name in ransomware_family_names:
             try:
-                temp_bc_sequence.append(irp_major_operation_type_pattern_count_container[ransomware_family_name][str(time)]['b->c'])
-                temp_bcC_sequence.append(irp_major_operation_type_pattern_count_container[ransomware_family_name][str(time)]['b->c->C'])
-                temp_bcG_sequence.append(irp_major_operation_type_pattern_count_container[ransomware_family_name][str(time)]['b->c->G'])
-                temp_EGbc_sequence.append(irp_major_operation_type_pattern_count_container[ransomware_family_name][str(time)]['E->G->b->c'])
-                temp_EGbcC_sequence.append(irp_major_operation_type_pattern_count_container[ransomware_family_name][str(time)]['E->(G->b->c)->C'])
+                temp_bc_sequence.append(container[ransomware_family_name][str(time)]['b->c'])
+                temp_bcC_sequence.append(container[ransomware_family_name][str(time)]['b->c->C'])
+                temp_bcG_sequence.append(container[ransomware_family_name][str(time)]['b->c->G'])
+                temp_EGbc_sequence.append(container[ransomware_family_name][str(time)]['E->G->b->c'])
+                temp_EGbcC_sequence.append(container[ransomware_family_name][str(time)]['E->(G->b->c)->C'])
             except:
                 continue
         
@@ -180,9 +178,17 @@ if __name__ == '__main__':
         bcG_sequence.append(temp_bcG_sequence)
         EGbc_sequence.append(temp_EGbc_sequence)
         EGbcC_sequence.append(temp_EGbcC_sequence)
+        
+    return bc_sequence, bcC_sequence, bcG_sequence, EGbc_sequence, EGbcC_sequence
+
+# Driver program
+if __name__ == '__main__':
     
-    # Delete temp variables
-    del (temp_bc_sequence, temp_bcC_sequence, temp_bcG_sequence, temp_EGbc_sequence, temp_EGbcC_sequence, time, ransomware_family_name)
+    # Get the IRP Major Operation Type container for futher analysis
+    irp_major_operation_type_pattern_count_container = generate_irp_major_operation_type_pattern_count(helper.get_train_ransomsomware_family_paths())
+    
+    # Obtain sequences list to plot different graphical illustrations
+    bc_sequence, bcC_sequence, bcG_sequence, EGbc_sequence, EGbcC_sequence = get_ransomware_process_sequence_counts(irp_major_operation_type_pattern_count_container)
     
     ''' Generate box plot for all the sequences by utilizing time series visualization script '''
     visualiser.generate_simple_box_plot(bc_sequence, "Sequence #1 distribution among Ransomware Families", "Unique Counts")
@@ -192,6 +198,7 @@ if __name__ == '__main__':
     visualiser.generate_simple_box_plot(EGbcC_sequence, "Sequence #5 distribution among Ransomware Families", "Unique Counts")                                        
                                         
     ''' Generate line graph containing all the sequences' median values '''
+    time_intervals = [i * 5 for i in range(1,19)]
     # All the five sequences
     plt.clf() # Clear figure
     myFig = plt.figure(figsize=[12,10])

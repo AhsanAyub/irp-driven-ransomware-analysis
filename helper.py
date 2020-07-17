@@ -11,9 +11,12 @@ __status__ = "Prototype"
 import os
 import glob
 
+# Families for validation of threshold
+test_ransomware_families = ['Bitman', 'Cerber', 'Kelios']
+
 
 def get_all_ransomsomware_family_paths():
-    ''' The function returns all the ransomware families
+    ''' The function returns all the training ransomware families
     paths for further analysis '''
     
     cwd = os.getcwd()   # Current project working direction
@@ -31,3 +34,33 @@ def get_ransomsomware_family_datasete_paths(family_path):
     ransomware_family_file_paths = [i for i in glob.glob(str(family_path) + '/*.gz')]
     
     return ransomware_family_file_paths
+
+
+def get_test_ransomsomware_family_paths():
+    ''' The function returns a certain set of ransomware families paths for
+    validation of the thresholds for both time series and sequence mining analysis '''
+    
+    ransomware_all_family_name_paths = get_all_ransomsomware_family_paths()
+    
+    ransomware_test_family_name_paths = []   # To store the required file paths
+    
+    for i in range(len(ransomware_all_family_name_paths)):
+        if (str(ransomware_all_family_name_paths[i]).split('/')[-1] in test_ransomware_families):
+            ransomware_test_family_name_paths.append(ransomware_all_family_name_paths[i])
+    
+    return ransomware_test_family_name_paths
+
+
+def get_train_ransomsomware_family_paths():
+    ''' The function returns a certain set of ransomware families paths for
+    training of the thresholds for both time series and sequence mining analysis '''
+    
+    ransomware_all_family_name_paths = get_all_ransomsomware_family_paths()
+    
+    ransomware_train_family_name_paths = []   # To store the required file paths
+    
+    for i in range(len(ransomware_all_family_name_paths)):
+        if (str(ransomware_all_family_name_paths[i]).split('/')[-1] not in test_ransomware_families):
+            ransomware_train_family_name_paths.append(ransomware_all_family_name_paths[i])
+    
+    return ransomware_train_family_name_paths
