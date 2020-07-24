@@ -9,9 +9,18 @@ __status__ = "Prototype"
 
 # Import libraries
 import pandas as pd
+import numpy as np
+import seaborn as sn
 import matplotlib.pyplot as plt
+import matplotlib.font_manager
+
 import helper as helper
 import sequence_mining_analysis.sequence_mining as sequence_mining
+
+# Libraries required to perform cluster algorithms
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler 
+from sklearn import preprocessing
 
 
 def generate_sequence_dict_from_sequence_list(sequence_list):
@@ -31,8 +40,256 @@ def generate_sequence_dict_from_sequence_list(sequence_list):
     return sequence_dict
 
 
+def explore_cluster_in_pattern_counts(data):
+    ''' With the five patterns' counts, this method explores a single cluster with PCA to solidify the belief
+    that the ransomware families will show similar behavior, i.e., data points in the same region. '''
+
+    X = data.iloc[:,:-1].values
+    Y = data.iloc[:, -1]
+    le = preprocessing.LabelEncoder()
+    Y = le.fit_transform(Y)
+    
+    pca = PCA(n_components=2)
+    pca_data = pca.fit(StandardScaler().fit_transform(X)).transform(StandardScaler().fit_transform(X))
+    
+    # Attaching the labels for each 2D data point
+    pca_data = np.vstack((pca_data.T, Y)).T
+    pca_df = pd.DataFrame(data=pca_data, columns=("PCA-1", "PCA-2", "Ransomware Family ID"))
+    
+    plt.clf() # Clear figure
+    myFig = plt.figure(figsize=[12,10])
+    myFig = sn.set_context("notebook")
+    myFig = sn.axes_style("whitegrid")
+    myFig = sn.FacetGrid(pca_df,hue="Ransomware Family ID", size=6).map(plt.scatter, "PCA-1", "PCA-2").add_legend()
+    plt.title('Sequence Counts with PCA', fontsize=20, weight='bold')
+    plt.ylabel('PCA-2', fontsize=18, weight='bold')
+    plt.xlabel('PCA-1', fontsize=18, weight='bold')
+    plt.yticks(fontsize=16)
+    plt.show()
+    
+    myFig.savefig('sequence_mining_analysis/Results/sequence_counts_pca_all.png', format='png', dpi=150)
+    myFig.savefig('sequence_mining_analysis/Results/sequence_counts_pca_all.eps', format='eps', dpi=1200)
+    
+
+def perform_one_class_svm_novelty_detection(data):
+    ''' With the five patterns' counts, this method performs One-Class SVM with non-linear kernel (RBF) for novelty detection
+    It is an unsupervised algorithm that learns a decision function for novelty detection: classifying
+    new data as similar or different to the training set.
+    
+    The experimentation is performed with different time chunks and number of sequences. '''
+    
+    # Importing necessary libraries
+    from sklearn import svm
+    from sklearn.model_selection import train_test_split
+    
+    # Performing PCA
+    X = data.iloc[:,0:4].values
+    pca = PCA(n_components=2)
+    X = pca.fit(StandardScaler().fit_transform(X)).transform(StandardScaler().fit_transform(X))
+    
+    # Spliting the observations into 75% training and 25% testing
+    X_train, X_test = train_test_split(X, test_size=0.25, random_state=42)
+    
+    # One-Class SVM classifier intialization and generate results
+    classifier = svm.OneClassSVM(nu=0.1, kernel="rbf", gamma=0.1)
+    classifier.fit(X_train)
+    Y_pred_train = classifier.predict(X_train)
+    Y_pred_test = classifier.predict(X_test)
+    n_error_train = Y_pred_train[Y_pred_train == -1].size
+    n_error_test = Y_pred_test[Y_pred_test == -1].size
+    error_train = n_error_train / Y_pred_train.shape[0] * 100
+    error_novel = n_error_test / Y_pred_test.shape[0] * 100
+    
+    # Visualization
+    plt.clf()
+    myFig = plt.figure(figsize=[10,8])
+    xx, yy = np.meshgrid(np.linspace(-5, 10, 500), np.linspace(-5, 9, 500))
+    Z = classifier.decision_function(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, levels=np.linspace(Z.min(), 0, 7), cmap=plt.cm.PuBu)
+    a = plt.contour(xx, yy, Z, levels=[0], linewidths=2, colors='darkred')
+    plt.contourf(xx, yy, Z, levels=[0, Z.max()], colors='palevioletred')
+    s = 60
+    b1 = plt.scatter(X_train[:, 0], X_train[:, 1], c='white', s=s, edgecolors='k')
+    b2 = plt.scatter(X_test[:, 0], X_test[:, 1], c='gold', s=s, edgecolors='k')
+    plt.axis('tight')
+    plt.legend([a.collections[0], b1, b2],
+               ["Learned Frontier", "Training Observations", "New Regular Observations"], loc="best",
+               prop=matplotlib.font_manager.FontProperties(size=14))
+    plt.xlabel("Error Train: %.2f%% and Error Novel Regular: %.2f%%" % (error_train, error_novel), fontsize=13, weight="bold")
+    plt.yticks(fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.title('Novelty Detection using OneClass SVM of Ransomware Families\'\nSequence #1, #2, #3, and #4 Counts from 40 minutes of IRP Logs', fontsize=14, weight='bold')
+    plt.show()
+    
+    # Save figure
+    myFig.savefig('sequence_mining_analysis/Results/novelty_detection/One-Class_SVM/40_mins_sequences_1_2_3_4.png', format='png', dpi=150)
+    myFig.savefig('sequence_mining_analysis/Results/novelty_detection/One-Class_SVM/40_mins_sequences_1_2_3_4.eps', format='eps', dpi=1200)
+
+
+def perform_isolation_forest_novelty_detection(data):
+    ''' With the five patterns' counts, this method performs Isolation Forest that ‘isolates’ observations by
+    randomly selecting a feature and then randomly selecting a split value between the maximum and minimum values of
+    the selected feature.
+    
+    The experimentation is performed with different time chunks and number of sequences. '''
+    
+    # Importing necessary libraries
+    from sklearn.ensemble import IsolationForest
+    from sklearn.model_selection import train_test_split
+    
+    # Performing PCA
+    X = data.iloc[:,0:5].values
+    pca = PCA(n_components=2)
+    X = pca.fit(StandardScaler().fit_transform(X)).transform(StandardScaler().fit_transform(X))
+    
+    # Spliting the observations into 75% training and 25% testing
+    X_train, X_test = train_test_split(X, test_size=0.25, random_state=42)
+    
+    # Isolation forest classifier intialization and generate results
+    classifier = IsolationForest(n_estimators=50)
+    classifier.fit(X_train)
+    Y_pred_train = classifier.predict(X_train)
+    Y_pred_test = classifier.predict(X_test)
+    n_error_train = Y_pred_train[Y_pred_train == -1].size
+    n_error_test = Y_pred_test[Y_pred_test == -1].size
+    error_train = n_error_train / Y_pred_train.shape[0] * 100
+    error_novel = n_error_test / Y_pred_test.shape[0] * 100
+    
+    # Visualization
+    plt.clf()
+    myFig = plt.figure(figsize=[10,8])
+    xx, yy = np.meshgrid(np.linspace(-2, 9, 500), np.linspace(-2, 5, 500))
+    Z = classifier.decision_function(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Blues_r)
+    s = 60
+    b1 = plt.scatter(X_train[:, 0], X_train[:, 1], c='white', s=s, edgecolors='k')
+    b2 = plt.scatter(X_test[:, 0], X_test[:, 1], c='gold', s=s, edgecolors='k')
+    plt.axis('tight')
+    plt.legend([b1, b2],
+               ["Training Observations", "New Regular Observations"],
+               loc="best", prop=matplotlib.font_manager.FontProperties(size=14))
+    plt.xlabel("Error Train: %.2f%% and Error Novel Regular: %.2f%%" % (error_train, error_novel), fontsize=13, weight="bold")
+    plt.yticks(fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.title('Novelty Detection using Isolation Forest of Ransomware Families\'\nAll Sequence Counts from 15 minutes of IRP Logs', fontsize=14, weight='bold')
+    plt.show()
+    
+    # Save figure
+    myFig.savefig('sequence_mining_analysis/Results/novelty_detection/Isolation_Forest/15_mins_sequences_all.png', format='png', dpi=150)
+    myFig.savefig('sequence_mining_analysis/Results/novelty_detection/Isolation_Forest/15_mins_sequences_all.eps', format='eps', dpi=1200)
+   
+    
+def perform_local_outlier_factor_novelty_detection(data):
+    ''' With the five patterns' counts, this method performs Local Outlier Factor that computes
+    the local density deviation of a given data point with respect to its neighbors.
+    
+    The experimentation is performed with different time chunks and number of sequences. '''
+    
+    # Importing necessary libraries
+    from sklearn.neighbors import LocalOutlierFactor
+    from sklearn.model_selection import train_test_split
+    
+    X = data.iloc[:,0:4].values
+    pca = PCA(n_components=2)
+    X = pca.fit(StandardScaler().fit_transform(X)).transform(StandardScaler().fit_transform(X))
+    
+    # Spliting the observations into 75% training and 25% testing
+    X_train, X_test = train_test_split(X, test_size=0.25, random_state=42)
+    
+    # Local Outlier Factor classifier intialization and generate results
+    classifier = LocalOutlierFactor(n_neighbors=20, novelty=True, contamination=0.1)
+    classifier.fit(X_train)
+    Y_pred_train = classifier.predict(X_train)
+    Y_pred_test = classifier.predict(X_test)
+    n_error_train = Y_pred_train[Y_pred_train == -1].size
+    n_error_test = Y_pred_test[Y_pred_test == -1].size
+    error_train = n_error_train / Y_pred_train.shape[0] * 100
+    error_novel = n_error_test / Y_pred_test.shape[0] * 100
+    
+    # Visualization
+    plt.clf()
+    myFig = plt.figure(figsize=[10,8])
+    xx, yy = np.meshgrid(np.linspace(-3, 8, 500), np.linspace(-2.5, 4, 500))
+    Z = classifier.decision_function(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, levels=np.linspace(Z.min(), 0, 7), cmap=plt.cm.PuBu)
+    a = plt.contour(xx, yy, Z, levels=[0], linewidths=2, colors='darkred')
+    plt.contourf(xx, yy, Z, levels=[0, Z.max()], colors='palevioletred')
+    s = 60
+    b1 = plt.scatter(X_train[:, 0], X_train[:, 1], c='white', s=s, edgecolors='k')
+    b2 = plt.scatter(X_test[:, 0], X_test[:, 1], c='gold', s=s, edgecolors='k')
+    plt.axis('tight')
+    plt.legend([a.collections[0], b1, b2],
+               ["Learned Frontier", "Training Observations", "New Regular Observations"],
+               loc="best", prop=matplotlib.font_manager.FontProperties(size=14))
+    plt.xlabel("Error Train: %.2f%% and Error Novel Regular: %.2f%%" % (error_train, error_novel), fontsize=13, weight="bold")
+    plt.yticks(fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.title('Novelty Detection using Local Outlier Factor of Ransomware Families\'\nSequence #1, #2, #3, and #4 Counts from 15 minutes of IRP Logs', fontsize=14, weight='bold')
+    plt.show()
+    
+    # Save figure
+    myFig.savefig('sequence_mining_analysis/Results/novelty_detection/Local_Outlier_Factor/15_mins_sequences_1_2_3_4.png', format='png', dpi=150)
+    myFig.savefig('sequence_mining_analysis/Results/novelty_detection/Local_Outlier_Factor/15_mins_sequences_1_2_3_4.eps', format='eps', dpi=1200)
+    
+
+def perform_robust_covariance_novelty_detection(data):
+    ''' With the five patterns' counts, this method performs Robust Covariance that can help concentrate on a relevant cluster when outlying points exist.
+    The experimentation is performed with different time chunks and number of sequences. '''
+    
+    # Importing necessary libraries
+    from sklearn.covariance import EllipticEnvelope
+    from sklearn.model_selection import train_test_split
+    
+    X = data.iloc[:,0:5].values
+    pca = PCA(n_components=2)
+    X = pca.fit(StandardScaler().fit_transform(X)).transform(StandardScaler().fit_transform(X))
+    
+    # Spliting the observations into 75% training and 25% testing
+    X_train, X_test = train_test_split(X, test_size=0.25, random_state=42)
+    
+    # Robust Covariance classifier intialization and generate results
+    classifier = EllipticEnvelope(contamination=0.25)
+    classifier.fit(X_train)
+    Y_pred_train = classifier.predict(X_train)
+    Y_pred_test = classifier.predict(X_test)
+    n_error_train = Y_pred_train[Y_pred_train == -1].size
+    n_error_test = Y_pred_test[Y_pred_test == -1].size
+    error_train = n_error_train / Y_pred_train.shape[0] * 100
+    error_novel = n_error_test / Y_pred_test.shape[0] * 100
+    
+    # Visualization
+    plt.clf()
+    myFig = plt.figure(figsize=[10,8])
+    xx, yy = np.meshgrid(np.linspace(-4.5, 8.5, 500), np.linspace(-4.5, 4.5, 500))
+    Z = classifier.decision_function(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, levels=np.linspace(Z.min(), 0, 7), cmap=plt.cm.PuBu)
+    a = plt.contour(xx, yy, Z, levels=[0], linewidths=2, colors='darkred')
+    plt.contourf(xx, yy, Z, levels=[0, Z.max()], colors='palevioletred')
+    s = 60
+    b1 = plt.scatter(X_train[:, 0], X_train[:, 1], c='white', s=s, edgecolors='k')
+    b2 = plt.scatter(X_test[:, 0], X_test[:, 1], c='gold', s=s, edgecolors='k')
+    plt.axis('tight')
+    plt.legend([a.collections[0], b1, b2],
+               ["Learned Frontier", "Training Observations", "New Regular Observations"],
+               loc="best", prop=matplotlib.font_manager.FontProperties(size=14))
+    plt.xlabel("Error Train: %.2f%% and Error Novel Regular: %.2f%%" % (error_train, error_novel), fontsize=13, weight="bold")
+    plt.yticks(fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.title('Novelty Detection using Robust Covariance of Ransomware Families\'\nAll Sequence Counts from 15 minutes of IRP Logs', fontsize=14, weight='bold')
+    plt.show()
+    
+    # Save figure
+    myFig.savefig('sequence_mining_analysis/Results/novelty_detection/Robust_Covariance/15_mins_sequences_all.png', format='png', dpi=150)
+    myFig.savefig('sequence_mining_analysis/Results/novelty_detection/Robust_Covariance/15_mins_sequences_all.eps', format='eps', dpi=1200)
+
+
 # Driver program
 if __name__ == '__main__':
+    
     # Get the IRP Major Operation Type container for test set
     irp_major_operation_type_pattern_count_container = sequence_mining.generate_irp_major_operation_type_pattern_count(helper.get_all_ransomsomware_family_paths())
     
@@ -55,7 +312,7 @@ if __name__ == '__main__':
     # Generate the dataframe from dictionary
     ransomware_family_names = []
     for key in bc_sequence_dict:
-        print(ransomware_family_names.append(key))
+        ransomware_family_names.append(key)
         
     data = {'bc': [],
             'bcC': [],
@@ -65,7 +322,7 @@ if __name__ == '__main__':
             'family_name': []}
     
     for family_name in ransomware_family_names:
-        for i in range(6):
+        for i in range(3):
             data['bc'].append(bc_sequence_dict[family_name][i])
             data['bcC'].append(bcC_sequence_dict[family_name][i])
             data['bcG'].append(bcG_sequence_dict[family_name][i])
@@ -76,39 +333,26 @@ if __name__ == '__main__':
     data = pd.DataFrame(data)
     print(data.head())
     
-    # Performing cluster algorithms
-    from sklearn.decomposition import PCA
-    from sklearn.preprocessing import StandardScaler 
-    from sklearn import preprocessing
-    import numpy as np
-    import seaborn as sn
+    # Visualize the clusters with PCA
+    explore_cluster_in_pattern_counts(data)
+
+    # Performing One-Class SVM classifier for novelty detection
+    perform_one_class_svm_novelty_detection(data)
     
-    X = data.iloc[:,0:3].values
-    Y = data.iloc[:, -1]
-    le = preprocessing.LabelEncoder()
-    Y = le.fit_transform(Y)
+    # Performing Isolation Forest classifier for novelty detection
+    perform_isolation_forest_novelty_detection(data)
     
-    pca = PCA(n_components=2)
-    pca_data = pca.fit(StandardScaler().fit_transform(X)).transform(StandardScaler().fit_transform(X))
+    # Performing Local Outlier Factor (LOF) classifier for novelty detection
+    perform_local_outlier_factor_novelty_detection(data)
     
-    # Attaching the labels for each 2D data point
-    pca_data = np.vstack((pca_data.T, Y)).T
-    pca_df = pd.DataFrame(data=pca_data, columns=("PCA-1", "PCA-2", "Ransomware Family ID"))
+    # Performing Robust Covariance classifier for novelty detection
+    perform_robust_covariance_novelty_detection(data)
     
-    plt.clf() # Clear figure
-    myFig = plt.figure(figsize=[12,10])
-    myFig = sn.set_context("notebook")
-    myFig = sn.axes_style("whitegrid")
-    myFig = sn.FacetGrid(pca_df,hue="Ransomware Family ID", size=6).map(plt.scatter, "PCA-1", "PCA-2").add_legend()
-    plt.title('Sequence Counts of #1, #2, and #3 with PCA', fontsize=20, weight='bold')
-    plt.ylabel('PCA-2', fontsize=18, weight='bold')
-    plt.xlabel('PCA-1', fontsize=18, weight='bold')
-    plt.yticks(fontsize=16)
-    plt.show()
+    # Deleting the dataframe and certain variables
+    del (data, ransomware_family_names)
     
-    myFig.savefig('sequence_mining_analysis/Results/sequence_counts_pca_1_2_3.png', format='png', dpi=150)
-    
-    ''' The following is the dataset of all five sequences based on the emprical analysis, that
+    ''' (This section of the work has been omitted due to poor performance)
+    The following is the dataset of all five sequences based on the emprical analysis, that
     is, the box plot analysis of the training ransomware family set and from the dataset,
     we will consider some threshold values. '''
     

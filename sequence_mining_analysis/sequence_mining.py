@@ -229,7 +229,7 @@ if __name__ == '__main__':
     plt.title('Time Series Plot for IRP Major Operation Type\'s Sequences', fontsize=20, weight='bold')
     plt.ylabel('Unique Counts (Median)', fontsize=18, weight='bold')
     plt.xlabel('Time (in minutes)', fontsize=18, weight='bold')
-    plt.legend(['Sequence #1', 'Sequence #2', 'Sequence #3'] , loc='best', fontsize=14)
+    plt.legend(['Sequence #1', 'Sequence #2', 'Sequence #3'], loc='best', fontsize=14)
     plt.yticks(fontsize=16)
     plt.show()
     
