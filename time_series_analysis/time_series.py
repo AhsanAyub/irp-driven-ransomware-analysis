@@ -4,7 +4,7 @@ __author__ = "Md. Ahsan Ayub"
 __license__ = "GPL"
 __credits__ = ["Ayub, Md. Ahsan", "Siraj, Ambareen"]
 __maintainer__ = "Md. Ahsan Ayub"
-__email__ = "mayub42@students.tntech.edu"
+__email__ = "mayub42@tntech.edu"
 __status__ = "Prototype"
 
 # Import libraries

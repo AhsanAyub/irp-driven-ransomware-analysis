@@ -4,7 +4,7 @@ __author__ = "Md. Ahsan Ayub"
 __license__ = "GPL"
 __credits__ = ["Ayub, Md. Ahsan", "Siraj, Ambareen"]
 __maintainer__ = "Md. Ahsan Ayub"
-__email__ = "mayub42@students.tntech.edu"
+__email__ = "mayub42@tntech.edu"
 __status__ = "Prototype"
 
 # Import libraries
@@ -83,7 +83,7 @@ def perform_one_class_svm_novelty_detection(data):
     from sklearn.model_selection import train_test_split
     
     # Performing PCA
-    X = data.iloc[:,0:4].values
+    X = data.iloc[:,3:-1].values
     pca = PCA(n_components=2)
     X = pca.fit(StandardScaler().fit_transform(X)).transform(StandardScaler().fit_transform(X))
     
